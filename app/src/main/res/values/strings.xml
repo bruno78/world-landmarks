@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">WorldLandmarks</string>
+    <string name="dialog_select_gallery">Gallery</string>
+    <string name="dialog_select_camera">Camera</string>
+    <string name="dialog_select_prompt">Choose an image</string>
 </resources>
