@@ -2,10 +2,13 @@ package com.brunogtavares.worldlandmarks;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -19,7 +22,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.cloud.FirebaseVisionCloudDetectorOptions;
 import com.google.firebase.ml.vision.cloud.landmark.FirebaseVisionCloudLandmark;
@@ -28,6 +30,7 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.common.FirebaseVisionLatLng;
 import com.mindorks.paracamera.Camera;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -38,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 1;
 
     private ImageView mImage;
-    private TextView mREsult;
+    private TextView mResult;
 
     Camera mCamera;
 
@@ -50,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mImage = (ImageView) findViewById(R.id.iv_image);
-        mREsult = (TextView) findViewById(R.id.tv_result);
+        mResult = (TextView) findViewById(R.id.tv_result);
 
         Button button = (Button) findViewById(R.id.bt_camera);
 
@@ -73,7 +76,25 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takePicture();
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage(R.string.dialog_select_prompt)
+                        .setPositiveButton(R.string.dialog_select_gallery,
+                                new DialogInterface.OnClickListener() {
+
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        startGalleryChooser();
+                                    }
+                                })
+                        .setNegativeButton(R.string.dialog_select_camera,
+                                new DialogInterface.OnClickListener() {
+
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        takePicture();
+                                    }
+                                });
+                builder.create().show();
             }
         });
     }
@@ -96,18 +117,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void startGalleryChooser() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Select a photo"),
+                PERMISSION_REQUEST_CODE);
+    }
+
     private void requestPermissions() {
+
         if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)) {
 
             ActivityCompat.requestPermissions( MainActivity.this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
+                            Manifest.permission.READ_EXTERNAL_STORAGE},
                     PERMISSION_REQUEST_CODE);
 
         }
         else {
             ActivityCompat.requestPermissions( MainActivity.this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
+                            Manifest.permission.READ_EXTERNAL_STORAGE},
                     PERMISSION_REQUEST_CODE);
         }
     }
@@ -128,10 +161,16 @@ public class MainActivity extends AppCompatActivity {
                     // If you get permission, launch the camera
                     launchCamera();
                 }
+                else if (grantResults.length > 0 &&
+                        grantResults[2] == PackageManager.PERMISSION_GRANTED) {
+
+                    // If you get permission, launch the gallery
+                    startGalleryChooser();
+                }
                 else {
 
                     // If you do not get permission, show a Toast
-                    Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
                 }
                 break;
             }
@@ -156,20 +195,41 @@ public class MainActivity extends AppCompatActivity {
             Bitmap bitmap = mCamera.getCameraBitmap();
             if(bitmap != null) {
                 mImage.setImageBitmap(bitmap);
-                processImage(bitmap);
+                processBitmapImage(bitmap);
             }else{
-                Toast.makeText(this.getApplicationContext(),"Picture not taken!",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this.getApplicationContext(), R.string.photo_not_taken, Toast.LENGTH_SHORT).show();
+            }
+        }
+        else if (resultCode == Activity.RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
+            final Uri imageUri = data.getData();
+            if(imageUri != null) {
+                mImage.setImageURI(imageUri);
+                processFileImage(imageUri);
             }
         }
     }
 
 
-    private void processImage(Bitmap bitmapImage) {
+    private void processBitmapImage(Bitmap bitmapImage) {
         FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmapImage);
+        detectLandmark(image);
+    }
+
+    private void processFileImage(Uri imageUri) {
+        FirebaseVisionImage image;
+        try {
+            image = FirebaseVisionImage.fromFilePath(this, imageUri);
+            detectLandmark(image);
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void detectLandmark(FirebaseVisionImage image) {
         FirebaseVisionCloudLandmarkDetector detector = FirebaseVision.getInstance()
                 .getVisionCloudLandmarkDetector(mOptions);
-
-        Task<List<FirebaseVisionCloudLandmark>> result = detector.detectInImage(image)
+        detector.detectInImage(image)
                 .addOnSuccessListener(new OnSuccessListener<List<FirebaseVisionCloudLandmark>>() {
                     @Override
                     public void onSuccess(List<FirebaseVisionCloudLandmark> firebaseVisionCloudLandmarks) {
@@ -181,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         // Task failed with an exception
-                        mREsult.setText("Could not detect the landmark... Try again!");
+                        mResult.setText(R.string.landmark_not_detected);
                     }
                 });
 
@@ -189,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadViews(List<FirebaseVisionCloudLandmark> firebaseVisionCloudLandmarks) {
         String message = "";
+
 
         if (firebaseVisionCloudLandmarks != null) {
 
@@ -214,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
             message = "Nothing found";
         }
 
-        mREsult.setText(message);
+        mResult.setText(message);
     }
 
     // The bitmap is saved in the app's folder
