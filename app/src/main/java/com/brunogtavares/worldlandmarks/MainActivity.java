@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         mCamera = new Camera.Builder()
                 .resetToCorrectOrientation(true)// it will rotate the camera bitmap to the correct orientation from meta data
                 .setTakePhotoRequestCode(Camera.REQUEST_TAKE_PHOTO)
-                .setDirectory("landmark_pics")
+                .setDirectory("WorldLandmakrs")
                 .setName("landmark_" + System.currentTimeMillis())
                 .setImageFormat(Camera.IMAGE_JPEG)
                 .setCompression(75)
