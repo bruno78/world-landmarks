@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -20,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.ml.vision.FirebaseVision;
@@ -32,6 +35,9 @@ import com.mindorks.paracamera.Camera;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
+
+import timber.log.Timber;
 
 /**
  * https://firebase.google.com/docs/ml-kit/android/recognize-landmarks
@@ -51,6 +57,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Planting Timber
+        if(BuildConfig.DEBUG) Timber.plant(new Timber.DebugTree());
 
         mImage = (ImageView) findViewById(R.id.iv_image);
         mResult = (TextView) findViewById(R.id.tv_result);
@@ -194,7 +203,8 @@ public class MainActivity extends AppCompatActivity {
         if(resultCode == Activity.RESULT_OK && requestCode == Camera.REQUEST_TAKE_PHOTO){
             Bitmap bitmap = mCamera.getCameraBitmap();
             if(bitmap != null) {
-                mImage.setImageBitmap(bitmap);
+                Glide.with(this).load(bitmap).into(mImage);
+                // mImage.setImageBitmap(bitmap);
                 processBitmapImage(bitmap);
             }else{
                 Toast.makeText(this.getApplicationContext(), R.string.photo_not_taken, Toast.LENGTH_SHORT).show();
@@ -203,7 +213,8 @@ public class MainActivity extends AppCompatActivity {
         else if (resultCode == Activity.RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
             final Uri imageUri = data.getData();
             if(imageUri != null) {
-                mImage.setImageURI(imageUri);
+                Glide.with(this).load(imageUri).into(mImage);
+                // mImage.setImageURI(imageUri);
                 processFileImage(imageUri);
             }
         }
@@ -252,23 +263,24 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (firebaseVisionCloudLandmarks != null) {
+            if(firebaseVisionCloudLandmarks.size() > 0) {
 
-            for (FirebaseVisionCloudLandmark landmark: firebaseVisionCloudLandmarks) {
+                for (FirebaseVisionCloudLandmark landmark: firebaseVisionCloudLandmarks) {
 
-                Rect bounds = landmark.getBoundingBox();
-                String landmarkName = landmark.getLandmark();
-                String entityId = landmark.getEntityId();
-                float confidence = landmark.getConfidence();
+                    String landmarkName = landmark.getLandmark();
+                    String entityId = landmark.getEntityId();
+                    float confidence = landmark.getConfidence();
 
-                // Multiple locations are possible, e.g., the location of the depicted
-                // landmark and the location the picture was taken.
-                for (FirebaseVisionLatLng loc: landmark.getLocations()) {
-                    double latitude = loc.getLatitude();
-                    double longitude = loc.getLongitude();
+                    // Multiple locations are possible, e.g., the location of the depicted
+                    // landmark and the location the picture was taken.
+                    for (FirebaseVisionLatLng loc: landmark.getLocations()) {
+                        double latitude = loc.getLatitude();
+                        double longitude = loc.getLongitude();
+                    }
+
+                    message = message + "    " + landmarkName + " " + confidence;
+                    message += "\n";
                 }
-
-                message = message + "    " + landmarkName + " " + confidence;
-                message += "\n";
             }
         }
         else {
@@ -276,6 +288,19 @@ public class MainActivity extends AppCompatActivity {
         }
 
         mResult.setText(message);
+    }
+
+    private String getCountryName(double latitude, double longitude) {
+        Geocoder gcd = new Geocoder(this, Locale.getDefault());
+        List<Address> addresses = null;
+
+        try {
+            addresses = gcd.getFromLocation(latitude, longitude, 1);
+            return addresses.get(0).getCountryName();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     // The bitmap is saved in the app's folder
@@ -286,5 +311,8 @@ public class MainActivity extends AppCompatActivity {
         mCamera.deleteImage();
     }
 
+    // TODO create a recycler View
+    // TODO save instance state
+    // TODO Fix views
 
 }

@@ -7,6 +7,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.brunogtavares.worldlandmarks.network.Repository;
+
+import retrofit2.Call;
+
 public class ImageInfoActivity extends AppCompatActivity {
 
     @Override
@@ -24,5 +28,8 @@ public class ImageInfoActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+
     }
+
 }

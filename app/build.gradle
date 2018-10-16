@@ -56,6 +56,12 @@ dependencies {
 
     // ParaCamera
     implementation 'com.mindorks:paracamera:0.2.2'
+
+    // Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
+
 }
 
 apply plugin: 'com.google.gms.google-services'
