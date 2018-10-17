@@ -6,7 +6,7 @@
     <string name="select_picture">Select a picture</string>
     <string name="permission_denied">Permission denied! Please, verify your permissions in settings.</string>
     <string name="photo_not_taken">Something went wrong! Photo not taken!</string>
-    <string name="landmark_not_detected">Could not detect landmark... Please, try again!</string>
+    <string name="landmark_not_detected">Could not detect landmark&#8230; Please, try again!</string>
     <string name="title_activity_image_info">ImageInfoActivity</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
@@ -98,4 +98,11 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="action_settings">Settings</string>
+    <string name="processing_image">Image to be processed</string>
+    <string name="choose_image">Choose an Image</string>
+    <string name="confidence_label">Confidence:</string>
+    <string name="place_icon_description">Place icon description</string>
+    <string name="getinfo_button_description">Get info button description.</string>
+    <string name="nothing_found">Nothing found!</string>
+    <string name="loading_message">Fetching the results&#8230; Please wait!</string>
 </resources>
