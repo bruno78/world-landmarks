@@ -35,7 +35,7 @@ public class Repository {
         return sInstance;
     }
 
-    public WikiEntry getInfo(String placeName) {
+    public WikiEntry getWikiEntry(String placeName) {
         final WikiEntry[] wikiEntry = new WikiEntry[1];
 
         Call<WikiEntry> call = mService.getInfo(placeName);

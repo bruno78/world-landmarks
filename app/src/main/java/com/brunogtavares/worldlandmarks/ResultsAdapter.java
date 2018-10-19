@@ -3,7 +3,6 @@ package com.brunogtavares.worldlandmarks;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,12 +49,13 @@ public class ResultsAdapter extends RecyclerView.Adapter<ResultsAdapter.ResultVi
 
         String landmarkName = landmark.getLandmark();
         String confidenceValue = LandmarkUtils.getPercentage(landmark.getConfidence());
-        String countryLocation = mContext != null ?
-                LandmarkUtils.getCountryName(mContext, landmark.getLocations()) : "";
+        String location = mContext != null ?
+                LandmarkUtils.getLocation(mContext, landmark.getLocations()) : "";
+
 
         resultViewHolder.mLandmarkName.setText(landmarkName);
         resultViewHolder.mConfidenceValue.setText(confidenceValue);
-        resultViewHolder.mLocation.setText(countryLocation);
+        resultViewHolder.mLocation.setText(location);
 
     }
 

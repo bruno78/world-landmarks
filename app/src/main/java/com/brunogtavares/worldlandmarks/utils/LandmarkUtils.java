@@ -19,7 +19,7 @@ public class LandmarkUtils {
 
     private LandmarkUtils(){}
 
-    public static String getCountryName(Context context, List<FirebaseVisionLatLng> landmarkLocations) {
+    public static String getLocation(Context context, List<FirebaseVisionLatLng> landmarkLocations) {
 
         double latitude = 0d;
         double longitude = 0d;

@@ -7,8 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.location.Address;
-import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -23,7 +21,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,13 +33,11 @@ import com.google.firebase.ml.vision.cloud.FirebaseVisionCloudDetectorOptions;
 import com.google.firebase.ml.vision.cloud.landmark.FirebaseVisionCloudLandmark;
 import com.google.firebase.ml.vision.cloud.landmark.FirebaseVisionCloudLandmarkDetector;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.google.firebase.ml.vision.common.FirebaseVisionLatLng;
 import com.mindorks.paracamera.Camera;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -56,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
     private static final int PERMISSION_REQUEST_CODE = 1;
     private static final String RESULTS_LIST_KEY = "RESULTS_LIST_KEY";
     private static final String URI_KEY = "URI_KEY";
-    private static final String BITMAP_KEY = "URI_KEY";
+    private static final String BITMAP_KEY = "BITMAP_KEY";
 
     @BindView(R.id.iv_image) ImageView mImage;
     @BindView(R.id.tv_not_found) TextView mNotFoundText;
@@ -64,6 +59,10 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
     @BindView(R.id.bt_choose_image) Button mGetImageButton;
     @BindView(R.id.rv_image_result) RecyclerView mRecyclerView;
     @BindView(R.id.rl_loading_layout) RelativeLayout mLoadingLayout;
+
+    @BindView(R.id.tv_landmark_name) TextView mLandmark;
+    @BindView(R.id.tv_location) TextView mPlace;
+    @BindView(R.id.tv_confidence_value) TextView mConfidence;
 
 
     private ResultsAdapter mResultsAdapter;
@@ -84,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
 
         ButterKnife.bind(this);
 
+
         mLayoutManager = new LinearLayoutManager(getApplicationContext());
         mRecyclerView.setItemViewCacheSize(15);
         mRecyclerView.setNestedScrollingEnabled(false);
@@ -93,7 +93,23 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
 
         mResultsAdapter = new ResultsAdapter(this);
         mResultsAdapter.setContext(getApplicationContext());
-        mResultsAdapter.setFirebaseVisionCloudLandmarks(new ArrayList<FirebaseVisionCloudLandmark>());
+
+
+
+        if(savedInstanceState != null) {
+            if(savedInstanceState.containsKey(BITMAP_KEY)) {
+                mImageBitmap = savedInstanceState.getParcelable(BITMAP_KEY);
+            }
+            if(savedInstanceState.containsKey(URI_KEY)) {
+                mImageUri = savedInstanceState.getParcelable(URI_KEY);
+            }
+
+            mResultsListState = savedInstanceState.getParcelable(RESULTS_LIST_KEY);
+            mLayoutManager.onRestoreInstanceState(mResultsListState);
+        }
+        else {
+            mResultsAdapter.setFirebaseVisionCloudLandmarks(new ArrayList<FirebaseVisionCloudLandmark>());
+        }
 
         mRecyclerView.setAdapter(mResultsAdapter);
 
@@ -143,6 +159,8 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
                 mImage.setVisibility(View.GONE);
                 mLoadingLayout.setVisibility(View.GONE);
                 mClearButton.hide();
+
+                findViewById(R.id.dummy_layout).setVisibility(View.GONE); // TODO delete this
             }
 
         });
@@ -152,6 +170,8 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
     public void onClick(FirebaseVisionCloudLandmark landmark) {
         Toast.makeText(this, "Takes you to ImageInfo Activity", Toast.LENGTH_SHORT)
                 .show();
+        // TODO implement this
+
     }
 
     //=================================
@@ -261,9 +281,10 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
                 mGetImageButton.setVisibility(View.GONE);
                 // mLoadingLayout.setVisibility(View.VISIBLE);
                 mImage.setVisibility(View.VISIBLE);
-
+                // TODO: Uncomment the right method.
                 Glide.with(this).load(mImageBitmap).into(mImage);
                 // processBitmapImage(bitmap);
+                processDummyData();
             }else{
                 Toast.makeText(this.getApplicationContext(), R.string.photo_not_taken, Toast.LENGTH_SHORT).show();
             }
@@ -278,7 +299,8 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
                 mImage.setVisibility(View.VISIBLE);
 
                 Glide.with(this).load(mImageUri).into(mImage);
-               // processFileImage(imageUri);
+                // processFileImage(imageUri);
+                processDummyData();
             }
         }
     }
@@ -345,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
         }
         else {
             mLoadingLayout.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
+            // mRecyclerView.setVisibility(View.VISIBLE); // TODO uncomment here
             mResultsAdapter.setFirebaseVisionCloudLandmarks(firebaseVisionCloudLandmarks);
 
         }
@@ -412,9 +434,59 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
     // *** End Handling Saving State ***
     //============================================
 
+    // TODO: Dummy data to void excessive calls to API. Delete this when is done testing.
+    private void processDummyData() {
+
+        findViewById(R.id.dummy_layout).setVisibility(View.VISIBLE);
+
+        String landmarkName = "Eiffel Tower";
+        String location = "Paris, France";
+        String confidence = "63.33%";
+        double longitude = 48.8584d;
+        double latitude = 2.2945d;
+
+        if(mImageUri != null || mImageBitmap != null) {
+            mLandmark.setText(landmarkName);
+            mPlace.setText(location);
+            mConfidence.setText(confidence);
+        }
+
+        findViewById(R.id.dummy_layout).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Take me to image info...", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, ImageInfoActivity.class);
+
+                Bundle bundle = new Bundle();
+
+            }
+        });
+    }
 
 
     // TODO save instance state
+    // It's saving and reloading. I just have to fix the views where they should be visible on recreate.
+    // Scale down the bitmap to avoid overloading the mainthread
+
+
     // TODO add check internet connection message
+
+    // TODO scale down bitmap files to avoid overloading the main thread
+    // TODO FIX this to refactor code and display it properly
+    private void displayImageInfo() {
+        mImage.setVisibility(View.VISIBLE);
+        mGetImageButton.setVisibility(View.GONE);
+        mClearButton.hide();
+    }
+    private void displayInitialState() {
+        mImage.setVisibility(View.GONE);
+        mGetImageButton.setVisibility(View.VISIBLE);
+        mClearButton.show();
+    }
+    private void displayError() {
+        mImage.setVisibility(View.VISIBLE);
+        mGetImageButton.setVisibility(View.GONE);
+        mClearButton.hide();
+    }
 
 }

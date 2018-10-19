@@ -56,6 +56,14 @@
         android:visibility="gone"
         android:layout_below="@+id/iv_image"/>
 
+    <!-- TODO: delete this when done fixing stuff -->
+    <include layout="@layout/result_list_item"
+        android:id="@+id/dummy_layout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/iv_image"/>
+
     <RelativeLayout
         android:id="@+id/rl_loading_layout"
         android:layout_width="wrap_content"
