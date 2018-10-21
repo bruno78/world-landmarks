@@ -105,4 +105,6 @@
     <string name="getinfo_button_description">Get info button description.</string>
     <string name="nothing_found">Nothing found!</string>
     <string name="loading_message">Fetching the results&#8230; Please wait!</string>
+    <string name="error">Unable to delete image!</string>
+    <string name="saved_message">Image Saved at %1$s</string>
 </resources>

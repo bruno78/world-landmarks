@@ -1,30 +1,28 @@
 package com.brunogtavares.worldlandmarks;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.brunogtavares.worldlandmarks.model.MyLandmark;
+import com.brunogtavares.worldlandmarks.utils.CameraUtils;
+import com.brunogtavares.worldlandmarks.utils.LandmarkUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -36,40 +34,39 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.mindorks.paracamera.Camera;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
+import static com.brunogtavares.worldlandmarks.utils.CameraUtils.*;
+
+
 /**
  * https://firebase.google.com/docs/ml-kit/android/recognize-landmarks
  */
-public class MainActivity extends AppCompatActivity implements ResultsAdapter.ResultsAdapterOnClickHandler{
+public class MainActivity extends AppCompatActivity {
 
-    private static final int PERMISSION_REQUEST_CODE = 1;
-    private static final String RESULTS_LIST_KEY = "RESULTS_LIST_KEY";
-    private static final String URI_KEY = "URI_KEY";
-    private static final String BITMAP_KEY = "BITMAP_KEY";
+    private static final String RESULT_KEY = "RESULT_KEY";
+    public static final String URI_KEY = "URI_KEY";
+    public static final String BITMAP_KEY = "BITMAP_KEY";
 
     @BindView(R.id.iv_image) ImageView mImage;
     @BindView(R.id.tv_not_found) TextView mNotFoundText;
     @BindView(R.id.fab_clear) FloatingActionButton mClearButton;
     @BindView(R.id.bt_choose_image) Button mGetImageButton;
-    @BindView(R.id.rv_image_result) RecyclerView mRecyclerView;
-    @BindView(R.id.rl_loading_layout) RelativeLayout mLoadingLayout;
 
+    @BindView(R.id.ll_result_list_item) LinearLayout mResultInfo;
     @BindView(R.id.tv_landmark_name) TextView mLandmark;
     @BindView(R.id.tv_location) TextView mPlace;
     @BindView(R.id.tv_confidence_value) TextView mConfidence;
+    @BindView(R.id.rl_loading_layout) RelativeLayout mLoadingLayout;
 
-
-    private ResultsAdapter mResultsAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
-    private Parcelable mResultsListState;
     private Uri mImageUri;
     private Bitmap mImageBitmap;
+    private Context mContext;
+    private MyLandmark mMyLandmark;
 
     Camera mCamera;
 
@@ -83,49 +80,34 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
 
         ButterKnife.bind(this);
 
-
-        mLayoutManager = new LinearLayoutManager(getApplicationContext());
-        mRecyclerView.setItemViewCacheSize(15);
-        mRecyclerView.setNestedScrollingEnabled(false);
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
-
-        mResultsAdapter = new ResultsAdapter(this);
-        mResultsAdapter.setContext(getApplicationContext());
-
-
+        mContext = this;
 
         if(savedInstanceState != null) {
             if(savedInstanceState.containsKey(BITMAP_KEY)) {
                 mImageBitmap = savedInstanceState.getParcelable(BITMAP_KEY);
+                displayImage();
             }
             if(savedInstanceState.containsKey(URI_KEY)) {
                 mImageUri = savedInstanceState.getParcelable(URI_KEY);
+                displayImage();
             }
-
-            mResultsListState = savedInstanceState.getParcelable(RESULTS_LIST_KEY);
-            mLayoutManager.onRestoreInstanceState(mResultsListState);
+            if(savedInstanceState.containsKey(RESULT_KEY)) {
+                mMyLandmark = savedInstanceState.getParcelable(RESULT_KEY);
+                processDummyData2(mMyLandmark);
+                displayInfo();
+            }
         }
         else {
-            mResultsAdapter.setFirebaseVisionCloudLandmarks(new ArrayList<FirebaseVisionCloudLandmark>());
+            displayInitialState();
         }
 
-        mRecyclerView.setAdapter(mResultsAdapter);
 
-        mCamera = new Camera.Builder()
-                .resetToCorrectOrientation(true) // it will rotate the camera bitmap to the correct orientation from meta data
-                .setTakePhotoRequestCode(Camera.REQUEST_TAKE_PHOTO)
-                .setDirectory("WorldLandmakrs")
-                .setName("landmark_" + System.currentTimeMillis())
-                .setImageFormat(Camera.IMAGE_JPEG)
-                .setCompression(75)
-                .build(this);
+        mCamera = CameraUtils.buildCamera(this);
 
         mGetImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(com.brunogtavares.worldlandmarks.MainActivity.this);
                 builder.setMessage(R.string.dialog_select_prompt)
                         .setPositiveButton(R.string.dialog_select_gallery,
                                 new DialogInterface.OnClickListener() {
@@ -140,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
 
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        takePicture();
+                                        takePicture(mContext, mCamera);
                                     }
                                 });
                 builder.create().show();
@@ -150,33 +132,16 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
         mClearButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCamera.deleteImage();
-                mImage.setImageResource(0);
-                mResultsAdapter.setFirebaseVisionCloudLandmarks(new ArrayList<FirebaseVisionCloudLandmark>());
-                mGetImageButton.setVisibility(View.VISIBLE);
-                mNotFoundText.setVisibility(View.GONE);
-                mRecyclerView.setVisibility(View.GONE);
-                mImage.setVisibility(View.GONE);
-                mLoadingLayout.setVisibility(View.GONE);
-                mClearButton.hide();
-
-                findViewById(R.id.dummy_layout).setVisibility(View.GONE); // TODO delete this
+                displayInitialState();
             }
 
         });
     }
 
-    @Override
-    public void onClick(FirebaseVisionCloudLandmark landmark) {
-        Toast.makeText(this, "Takes you to ImageInfo Activity", Toast.LENGTH_SHORT)
-                .show();
-        // TODO implement this
-
-    }
-
     //=================================
-    // Camera and Gallery Permissions
+    // Gallery Permissions
     //
+
     private void startGalleryChooser() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
@@ -184,60 +149,10 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
                 PERMISSION_REQUEST_CODE);
     }
 
-    private void takePicture() {
-
-        // Check for the external storage permission
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
-                PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CAMERA) !=
-                PackageManager.PERMISSION_GRANTED) {
-
-            // If you do not have permission, request it
-            requestPermissions();
-        }
-        else {
-            // Launch the camera if the permission exists
-            launchCamera();
-        }
-    }
-
-    private void launchCamera() {
-
-        try {
-            mCamera.takePicture();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void requestPermissions() {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
-                ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)) {
-
-            ActivityCompat.requestPermissions( MainActivity.this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
-                            Manifest.permission.READ_EXTERNAL_STORAGE},
-                    PERMISSION_REQUEST_CODE);
-
-        }
-        else {
-
-            ActivityCompat.requestPermissions( MainActivity.this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
-                            Manifest.permission.READ_EXTERNAL_STORAGE},
-                    PERMISSION_REQUEST_CODE);
-
-        }
-    }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                          @NonNull int[] grantResults) {
+                                           @NonNull int[] grantResults) {
         // Called when you request permission to use camera, read and write to external storage
         switch (requestCode) {
 
@@ -248,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
                         grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
                     // If you get permission, launch the camera
-                    launchCamera();
+                    launchCamera(mCamera);
                 }
                 else if (grantResults.length > 0 &&
                         grantResults[2] == PackageManager.PERMISSION_GRANTED) {
@@ -271,20 +186,15 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Timber.d("We are here!");
-
         if(resultCode == Activity.RESULT_OK && requestCode == Camera.REQUEST_TAKE_PHOTO){
             mImageBitmap = mCamera.getCameraBitmap();
 
             if(mImageBitmap != null) {
-                mClearButton.show();
-                mGetImageButton.setVisibility(View.GONE);
-                // mLoadingLayout.setVisibility(View.VISIBLE);
-                mImage.setVisibility(View.VISIBLE);
+                displayImage();
                 // TODO: Uncomment the right method.
                 Glide.with(this).load(mImageBitmap).into(mImage);
-                // processBitmapImage(bitmap);
-                processDummyData();
+                processBitmapImage(mImageBitmap);
+                // processDummyData();
             }else{
                 Toast.makeText(this.getApplicationContext(), R.string.photo_not_taken, Toast.LENGTH_SHORT).show();
             }
@@ -293,20 +203,17 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
             mImageUri = data.getData();
 
             if(mImageUri != null) {
-                mClearButton.show();
-                mGetImageButton.setVisibility(View.GONE);
-                // mLoadingLayout.setVisibility(View.VISIBLE);
-                mImage.setVisibility(View.VISIBLE);
+                displayImage();
 
                 Glide.with(this).load(mImageUri).into(mImage);
-                // processFileImage(imageUri);
-                processDummyData();
+                processFileImage(mImageUri);
+                // processDummyData();
             }
         }
     }
 
     //
-    // *** End Camera and Gallery Permissions ***
+    // *** End Gallery Permissions ***
     //============================================
 
 
@@ -345,7 +252,10 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
                     @Override
                     public void onSuccess(List<FirebaseVisionCloudLandmark> firebaseVisionCloudLandmarks) {
                         // Task completed successfully
-                        loadViews(firebaseVisionCloudLandmarks);
+                        // For now, I'm getting only one result. Later
+                        setMyLandmark(firebaseVisionCloudLandmarks.get(0));
+                        processDummyData2(mMyLandmark);
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -353,26 +263,12 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
                     public void onFailure(@NonNull Exception e) {
                         // Task failed with an exception
                         Timber.d("Unable to detect image: " + e);
-                       loadViews(new ArrayList<FirebaseVisionCloudLandmark>());
+                        processDummyData2(new MyLandmark());
                     }
                 });
 
     }
 
-    private void loadViews(List<FirebaseVisionCloudLandmark> firebaseVisionCloudLandmarks) {
-
-        if(firebaseVisionCloudLandmarks == null || firebaseVisionCloudLandmarks.size() < 1) {
-            mLoadingLayout.setVisibility(View.GONE);
-            mNotFoundText.setVisibility(View.VISIBLE);
-        }
-        else {
-            mLoadingLayout.setVisibility(View.GONE);
-            // mRecyclerView.setVisibility(View.VISIBLE); // TODO uncomment here
-            mResultsAdapter.setFirebaseVisionCloudLandmarks(firebaseVisionCloudLandmarks);
-
-        }
-
-    }
 
     // The bitmap is saved in the app's folder
     //  If the saved bitmap is not required use following code
@@ -391,28 +287,17 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(RESULTS_LIST_KEY, mLayoutManager.onSaveInstanceState());
+
         if(mImageBitmap != null) {
             outState.putParcelable(BITMAP_KEY, mImageBitmap);
         }
         if(mImageUri != null) {
             outState.putParcelable(URI_KEY, mImageUri);
         }
-
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        if(savedInstanceState.containsKey(BITMAP_KEY)) {
-            mImageBitmap = savedInstanceState.getParcelable(BITMAP_KEY);
-        }
-        if(savedInstanceState.containsKey(URI_KEY)) {
-            mImageUri = savedInstanceState.getParcelable(URI_KEY);
+        if(mMyLandmark != null) {
+            outState.putParcelable(RESULT_KEY, mMyLandmark);
         }
 
-        mResultsListState = savedInstanceState.getParcelable(RESULTS_LIST_KEY);
     }
 
     @Override
@@ -421,12 +306,15 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
 
         if(mImageBitmap != null) {
             Glide.with(this).load(mImageBitmap).into(mImage);
+            displayImage();
         }
         if(mImageUri != null) {
             Glide.with(this).load(mImageUri).into(mImage);
+            displayImage();
         }
-        if(mResultsListState != null) {
-            mLayoutManager.onRestoreInstanceState(mResultsListState);
+        if(mMyLandmark != null) {
+            processDummyData2(mMyLandmark);
+            displayInfo();
         }
 
     }
@@ -437,7 +325,9 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
     // TODO: Dummy data to void excessive calls to API. Delete this when is done testing.
     private void processDummyData() {
 
-        findViewById(R.id.dummy_layout).setVisibility(View.VISIBLE);
+        mLoadingLayout.setVisibility(View.INVISIBLE);
+        findViewById(R.id.ll_result_list_item).setVisibility(View.VISIBLE);
+
 
         String landmarkName = "Eiffel Tower";
         String location = "Paris, France";
@@ -451,42 +341,111 @@ public class MainActivity extends AppCompatActivity implements ResultsAdapter.Re
             mConfidence.setText(confidence);
         }
 
-        findViewById(R.id.dummy_layout).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.ll_result_list_item).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Take me to image info...", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(MainActivity.this, ImageInfoActivity.class);
+                Toast.makeText(com.brunogtavares.worldlandmarks.MainActivity.this, "Take me to image info...", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-                Bundle bundle = new Bundle();
+    private void setMyLandmark(FirebaseVisionCloudLandmark landmark) {
+
+        String landmarkName = landmark.getLandmark();
+        String location = LandmarkUtils.getLocation(this, landmark.getLocations());
+        String confidence = LandmarkUtils.getPercentage(landmark.getConfidence());
+        double longitude = LandmarkUtils.getLongitude(landmark.getLocations());
+        double latitude = LandmarkUtils.getLatitude(landmark.getLocations());
+
+        mMyLandmark = new MyLandmark(landmarkName, confidence, location, latitude, longitude);
+    }
+
+
+    private void processDummyData2(MyLandmark myLandmark) {
+
+        if(myLandmark == null) {
+            displayError();
+        }
+        else {
+            displayInfo();
+
+
+            String landmarkName = myLandmark.getLandmark();
+            String location = myLandmark.getLocation();
+            String confidence = myLandmark.getConfidence();
+
+            if(mImageUri != null || mImageBitmap != null) {
+                mLandmark.setText(landmarkName);
+                mPlace.setText(location);
+                mConfidence.setText(confidence);
+            }
+
+        }
+
+
+        findViewById(R.id.ll_result_list_item).setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(com.brunogtavares.worldlandmarks.MainActivity.this, "Take me to image info...", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(com.brunogtavares.worldlandmarks.MainActivity.this, ImageInfoActivity.class);
+                intent.putExtra(ImageInfoActivity.LANDMARK_BUNDLE_KEY, mMyLandmark);
+
+                if(mImageUri != null) {
+                    intent.putExtra(URI_KEY, mImageUri);
+                }
+                if(mImageBitmap != null) {
+                    intent.putExtra(BITMAP_KEY, mImageBitmap);
+                }
+
+                startActivity(intent);
 
             }
         });
     }
 
-
-    // TODO save instance state
-    // It's saving and reloading. I just have to fix the views where they should be visible on recreate.
-    // Scale down the bitmap to avoid overloading the mainthread
-
-
-    // TODO add check internet connection message
-
-    // TODO scale down bitmap files to avoid overloading the main thread
     // TODO FIX this to refactor code and display it properly
-    private void displayImageInfo() {
+    private void displayImage() {
         mImage.setVisibility(View.VISIBLE);
         mGetImageButton.setVisibility(View.GONE);
-        mClearButton.hide();
-    }
-    private void displayInitialState() {
-        mImage.setVisibility(View.GONE);
-        mGetImageButton.setVisibility(View.VISIBLE);
         mClearButton.show();
+        mLoadingLayout.setVisibility(View.VISIBLE);
     }
-    private void displayError() {
-        mImage.setVisibility(View.VISIBLE);
-        mGetImageButton.setVisibility(View.GONE);
+
+    private void displayInitialState() {
+
         mClearButton.hide();
+        mImage.setVisibility(View.GONE);
+
+        mGetImageButton.setVisibility(View.VISIBLE);
+
+        mResultInfo.setVisibility(View.GONE);
+        mNotFoundText.setVisibility(View.GONE);
+        mLoadingLayout.setVisibility(View.GONE);
+
+        mImageBitmap = null;
+        mImageUri = null;
+        mLandmark.setText("");
+        mPlace.setText("");
+        mConfidence.setText("");
+        mImage.setImageResource(0);
+
+        mMyLandmark = null;
+
+        if(mCamera != null) mCamera.deleteImage();
+
+    }
+
+    private void displayError() {
+        mLoadingLayout.setVisibility(View.GONE);
+        mResultInfo.setVisibility(View.GONE);
+        mNotFoundText.setVisibility(View.VISIBLE);
+
+    }
+
+    private void displayInfo() {
+        mLoadingLayout.setVisibility(View.GONE);
+        mResultInfo.setVisibility(View.VISIBLE);
     }
 
 }

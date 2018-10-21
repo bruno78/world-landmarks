@@ -1,6 +1,6 @@
 package com.brunogtavares.worldlandmarks.network;
 
-import com.brunogtavares.worldlandmarks.network.wikipedia.WikiEntry;
+import com.brunogtavares.worldlandmarks.model.WikiEntry;
 import com.brunogtavares.worldlandmarks.network.wikipedia.WikipediaAPIClient;
 import com.brunogtavares.worldlandmarks.network.wikipedia.WikipediaAPIService;
 
@@ -13,18 +13,18 @@ import timber.log.Timber;
  * Created by brunogtavares on 10/15/18.
  */
 
-public class Repository {
+public class WikiRepository {
 
     private static final Object LOCK = new Object();
-    private static Repository sInstance;
+    private static WikiRepository sInstance;
 
     private static WikipediaAPIService mService;
 
-    private Repository(WikipediaAPIService service) {
+    private WikiRepository(WikipediaAPIService service) {
         this.mService = service;
     }
 
-    public static Repository getsInstance() {
+    public static WikiRepository getsInstance() {
         if (sInstance == null) {
             synchronized (LOCK) {
                 WikipediaAPIService service = WikipediaAPIClient.getRetrofitInstance()

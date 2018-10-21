@@ -1,5 +1,7 @@
 package com.brunogtavares.worldlandmarks.network.wikipedia;
 
+import com.brunogtavares.worldlandmarks.model.WikiEntry;
+
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;

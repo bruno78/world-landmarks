@@ -1,4 +1,4 @@
-package com.brunogtavares.worldlandmarks.network.wikipedia;
+package com.brunogtavares.worldlandmarks.model;
 
 import com.google.gson.annotations.SerializedName;
 
