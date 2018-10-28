@@ -8,18 +8,35 @@ by using Google Vision Api, and Wikipedia to bring some information about it.
 
 ### Main Activity
 
--[ ] Create Refine location
--[ ] Fix if landmark list != null || landmark list > 0
--[ ] Fix clear text when getting the next landmark 
--[ ] Create RecyclerView for the results:
--[ ] Add clear button handle both cases photo taken and uploaded.
+-[x] Create Refine location
+-[x] Fix if landmark list != null || landmark list > 0
+-[x] Fix clear text when getting the next landmark 
+-[x] Create RecyclerView for the results:
+-[x] Add clear button handle both cases photo taken and uploaded.
 -[ ] Add bottom menu 
--[ ] Fix views 
--[ ] Refactor (landmark detection code to its own class)
+-[x] Fix views 
+-[x] Refactor (landmark detection code to its own class)
+
+### ImageInfo Activity
+
+-[x] Add WikipediaAPI
+-[x] Add Loaders
+-[x] Implement Firebase save and delete functions
+-[ ] Fix fab state button to keep on rotation
+
+### Registration
+
+-[x] Implement Registration sign in and sign up
+-[ ] Implement Logout
+
+### Firebase
+
+-[ ] Authenticate user to read and write Database and Storage
 
 ### Add views
 
--[ ] ImageInfo Activity 
+-[x] ImageInfo Activity 
+-[x] Registration
 -[ ] Saved Landmark List Activity 
 -[ ] Landmark Maps Activity
 -[ ] Widget Activity 

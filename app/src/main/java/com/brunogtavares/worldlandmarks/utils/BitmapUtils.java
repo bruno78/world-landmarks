@@ -1,11 +1,13 @@
 package com.brunogtavares.worldlandmarks.utils;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
@@ -209,6 +211,27 @@ public class BitmapUtils {
                 storageDir
         );
         return image;
+    }
+
+    public static byte[] getUploadTask(Uri uri, Application application) {
+        Bitmap bitmap = null;
+
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(application.getContentResolver(), uri);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (bitmap !=  null) bitmap.compress(Bitmap.CompressFormat.JPEG, 40, baos);
+
+        return baos.toByteArray();
+    }
+
+    public static String createFileName() {
+        String timeStamp =
+                new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        return "IMG_" + timeStamp;
     }
 
 }

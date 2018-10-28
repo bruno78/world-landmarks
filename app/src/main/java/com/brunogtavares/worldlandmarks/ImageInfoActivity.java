@@ -1,14 +1,12 @@
 package com.brunogtavares.worldlandmarks;
 
 import android.content.Intent;
-import android.graphics.drawable.Animatable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,19 +14,37 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.brunogtavares.worldlandmarks.Firebase.FirebaseEntry;
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.brunogtavares.worldlandmarks.model.WikiEntry;
+import com.brunogtavares.worldlandmarks.utils.BitmapUtils;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import timber.log.Timber;
 
 public class ImageInfoActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<WikiEntry> {
 
     public static final String LANDMARK_BUNDLE_KEY = "LANDMARK_BUNDLE_KEY";
     private static final int WIKIENTRY_LOADER_ID = 1;
+    private static final String DB_ENTRY_KEY = "DB_ENTRY_KEY";
 
     @BindView(R.id.app_bar) AppBarLayout mAppBar;
     @BindView(R.id.toolbar_layout) CollapsingToolbarLayout mToolbarLayout;
@@ -43,6 +59,18 @@ public class ImageInfoActivity extends AppCompatActivity
     private Uri mImageUri;
     private String mLandmarkName;
 
+    private FirebaseAuth mAuth;
+    private DatabaseReference mUserDb;
+    private StorageReference mFirebaseStorage;
+
+    private String mUserId;
+    private String mKey;
+    private String mFirebaseFileImagePath;
+
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +79,12 @@ public class ImageInfoActivity extends AppCompatActivity
         ButterKnife.bind(this);
 
         setSupportActionBar(mToolbar);
+
+        if(savedInstanceState != null && savedInstanceState.containsKey(DB_ENTRY_KEY)) {
+            mKey = savedInstanceState.getString(DB_ENTRY_KEY);
+            mFabButton.setSelected(true);
+        }
+
 
         Intent intent = getIntent();
         if(intent != null) {
@@ -67,28 +101,32 @@ public class ImageInfoActivity extends AppCompatActivity
             loadViews();
         }
 
+        mAuth = FirebaseAuth.getInstance();
+        mUserId = mAuth.getCurrentUser().getUid();
+        mUserDb = FirebaseDatabase.getInstance().getReference()
+                .child(FirebaseEntry.TABLE_USERS).child(mUserId)
+                .child(FirebaseEntry.TABLE_MYLANDMARKS);
+        mFirebaseStorage = FirebaseStorage.getInstance().getReference()
+                .child(mUserId);
+
 
         mFabButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//
-//                fab.setSelected(!fab.isSelected());
-//                fab.setImageResource(fab.isSelected() ? R.drawable.animated_plus : R.drawable.animated_check);
-//                Drawable drawable = fab.getDrawable();
-//                if (drawable instanceof Animatable) {
-//                    ((Animatable) drawable).start();
-//                }
-                // TODO: Make sure SELECTED is member variable
-                // Change the background color on save
-                // save to firebase
+
                 mFabButton.setSelected(!mFabButton.isSelected());
+
                 int imageResource = mFabButton.isSelected()? R.drawable.ic_check_icon :
                         R.drawable.ic_add_icon;
 
                 changeFab(imageResource);
 
+                if(mFabButton.isSelected()) {
+                    saveInfo();
+                }
+                else {
+                    deleteInfo();
+                }
 
             }
         });
@@ -130,6 +168,76 @@ public class ImageInfoActivity extends AppCompatActivity
 
     }
 
+    private void saveInfo() {
+        String landmark = mMyLandmark.getLandmark();
+        String location = mMyLandmark.getLocation();
+        String confidence = mMyLandmark.getConfidence();
+        String latitude = Double.toString(mMyLandmark.getLatitude());
+        String longitude = Double.toString(mMyLandmark.getLongitude());
+        String description = mWikipediaContent.getText().toString();
+
+
+        final Map imageInfo = new HashMap<String, String>();
+        imageInfo.put(FirebaseEntry.LANDMARK_NAME, landmark);
+        imageInfo.put(FirebaseEntry.LOCATION, location);
+        imageInfo.put(FirebaseEntry.CONFIDENCE, confidence);
+        imageInfo.put(FirebaseEntry.LATITUDE, latitude);
+        imageInfo.put(FirebaseEntry.LONGITUDE, longitude);
+        imageInfo.put(FirebaseEntry.DESCRIPTION, description);
+
+        // Get a reference with an empty spot so an ID can be retrieved
+        final DatabaseReference newEntry = mUserDb.push();
+        mKey = newEntry.getKey();
+        newEntry.setValue(imageInfo);
+        mFirebaseFileImagePath = BitmapUtils.createFileName();
+        final StorageReference newStorageEntry = mFirebaseStorage.child(mFirebaseFileImagePath);
+
+        byte[] data = BitmapUtils.getUploadTask(mImageUri, getApplication());
+        UploadTask uploadTask = newStorageEntry.putBytes(data);
+
+        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+            @Override
+            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                if(!task.isSuccessful()) {
+                    Timber.d("Something went wrong!");
+                }
+
+                // Continue with the task ato get the download URL
+                return newStorageEntry.getDownloadUrl();
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                if(task.isSuccessful()) {
+
+                    Uri downloadUrl = task.getResult();
+                    imageInfo.put(FirebaseEntry.IMAGE_URI, downloadUrl.toString());
+                    newEntry.updateChildren(imageInfo);
+
+                    Toast.makeText(ImageInfoActivity.this, "Message Saved Sucessfully!", Toast.LENGTH_SHORT).show();
+
+                }
+                else {
+                    Toast.makeText(ImageInfoActivity.this, "Unable to download the file", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+    }
+
+    private void deleteInfo() {
+        if(mKey != null) {
+            mUserDb.child(mKey).setValue(null);
+            mFirebaseStorage.child(mFirebaseFileImagePath).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Toast.makeText(ImageInfoActivity.this, "Successfully deleted from database!", Toast.LENGTH_SHORT).show();
+                    mKey = null;
+                }
+            });
+        }
+    }
+
     private void displayContent() {
         mWikipediaContent.setVisibility(View.VISIBLE);
         mLoadingScreen.setVisibility(View.GONE);
@@ -139,6 +247,15 @@ public class ImageInfoActivity extends AppCompatActivity
         mLoadingScreen.setVisibility(View.VISIBLE);
         mWikipediaContent.setVisibility(View.GONE);
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putString(DB_ENTRY_KEY, mKey);
+    }
+
+
 }
 
 
