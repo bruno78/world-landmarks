@@ -87,13 +87,19 @@ public class ImageInfoActivity extends AppCompatActivity
                 int imageResource = mFabButton.isSelected()? R.drawable.ic_check_icon :
                         R.drawable.ic_add_icon;
 
-                mFabButton.setImageResource(imageResource);
+                changeFab(imageResource);
 
 
             }
         });
     }
 
+    /***
+     * This method solves this problem:
+     * https://stackoverflow.com/questions/52133846/fab-icon-disappers-after-click
+     * https://stackoverflow.com/questions/49587945/setimageresourceint-doesnt-work-after-setbackgroundtintcolorlistcolorstateli/52158081#52158081
+     * @param resource
+     */
     private void changeFab(int resource) {
         mFabButton.hide();
         mFabButton.setImageResource(resource);
