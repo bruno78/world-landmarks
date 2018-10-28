@@ -57,7 +57,7 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // ParaCamera
-    implementation 'com.mindorks:paracamera:0.2.2'
+    // implementation 'com.mindorks:paracamera:0.2.2'
 
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'

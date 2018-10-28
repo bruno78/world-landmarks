@@ -9,9 +9,10 @@ import android.os.Parcelable;
 
 public class MyLandmark implements Parcelable {
 
-    private String landMarkName;
+    private String id;
+    private String landmarkName;
     private String confidence;
-    private String place;
+    private String location;
     private String imageUri;
     private double latitude;
     private double longitude;
@@ -19,48 +20,64 @@ public class MyLandmark implements Parcelable {
 
     public MyLandmark(){}
 
-    public MyLandmark(String landMarkName, String confidence, String place){
-        this.landMarkName = landMarkName;
+    public MyLandmark(String landmarkName, String confidence, String location){
+        this.landmarkName = landmarkName;
         this.confidence = confidence;
-        this.place = place;
+        this.location = location;
     }
 
-    public MyLandmark(String landMarkName, String confidence, String place, double latitude,
+    public MyLandmark(String landmarkName, String confidence, String location, double latitude,
                       double longitude) {
-        this.landMarkName = landMarkName;
+        this.landmarkName = landmarkName;
         this.confidence = confidence;
-        this.place = place;
+        this.location = location;
         this.longitude = longitude;
         this.latitude = latitude;
     }
 
-    public MyLandmark(String landMarkName, String confidence, String place, String imageUri,
+    public MyLandmark(String landmarkName, String confidence, String location, String imageUri,
                       double latitude, double longitude) {
-        this.landMarkName = landMarkName;
+        this.landmarkName = landmarkName;
         this.confidence = confidence;
-        this.place = place;
+        this.location = location;
         this.imageUri = imageUri;
         this.longitude = longitude;
         this.latitude = latitude;
     }
 
-    public MyLandmark(String landMarkName, String confidence, String place, String imageUri,
+    public MyLandmark(String landmarkName, String confidence, String location, String imageUri,
                       double latitude, double longitude, String description) {
-        this.landMarkName = landMarkName;
+        this.landmarkName = landmarkName;
         this.confidence = confidence;
-        this.place = place;
+        this.location = location;
         this.imageUri = imageUri;
         this.longitude = longitude;
         this.latitude = latitude;
         this.description = description;
     }
 
-    public String getLandmark() {
-        return landMarkName;
+    public MyLandmark(String id, String landmarkName, String confidence, String location, String imageUri,
+                      double latitude, double longitude, String description) {
+        this.id = id;
+        this.landmarkName = landmarkName;
+        this.confidence = confidence;
+        this.location = location;
+        this.imageUri = imageUri;
+        this.longitude = longitude;
+        this.latitude = latitude;
+        this.description = description;
     }
 
-    public void setLandMarkName(String landMarkName) {
-        this.landMarkName = landMarkName;
+    public String getId() { return id; }
+
+    public void setId(String id) { this.id = id; }
+
+    public String getLandmark() {
+        return landmarkName;
+    }
+
+    public void setLandMarkName(String landmarkName) {
+        this.landmarkName = landmarkName;
     }
 
     public String getConfidence() {
@@ -72,11 +89,11 @@ public class MyLandmark implements Parcelable {
     }
 
     public String getLocation() {
-        return place;
+        return location;
     }
 
-    public void setPlace(String place) {
-        this.place = place;
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public String getImageUri() {
@@ -118,9 +135,10 @@ public class MyLandmark implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.landMarkName);
+        dest.writeString(this.id);
+        dest.writeString(this.landmarkName);
         dest.writeString(this.confidence);
-        dest.writeString(this.place);
+        dest.writeString(this.location);
         dest.writeString(this.imageUri);
         dest.writeDouble(this.latitude);
         dest.writeDouble(this.longitude);
@@ -128,9 +146,10 @@ public class MyLandmark implements Parcelable {
     }
 
     protected MyLandmark(Parcel in) {
-        this.landMarkName = in.readString();
+        this.id = in.readString();
+        this.landmarkName = in.readString();
         this.confidence = in.readString();
-        this.place = in.readString();
+        this.location = in.readString();
         this.imageUri = in.readString();
         this.longitude = in.readDouble();
         this.latitude = in.readDouble();

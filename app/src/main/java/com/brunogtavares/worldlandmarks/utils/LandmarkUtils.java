@@ -64,28 +64,4 @@ public class LandmarkUtils {
         }
         return longitude;
     }
-
-    public static List<MyLandmark> getMyLandmarkList(Context context, List<FirebaseVisionCloudLandmark> landmarks) {
-
-        List<MyLandmark> myLandmarks = new ArrayList<>();
-
-        for (FirebaseVisionCloudLandmark landmark : landmarks) {
-
-            MyLandmark myLandmark = getMyLandmark(context, landmark);
-
-            myLandmarks.add(myLandmark);
-        }
-
-        return myLandmarks;
-    }
-
-    public static MyLandmark getMyLandmark(Context context, FirebaseVisionCloudLandmark landmark){
-
-        return new MyLandmark(
-                landmark.getLandmark(),
-                LandmarkUtils.getPercentage(landmark.getConfidence()),
-                LandmarkUtils.getLocation(context, landmark.getLocations()),
-                LandmarkUtils.getLatitude(landmark.getLocations()),
-                LandmarkUtils.getLongitude(landmark.getLocations()));
-    }
 }

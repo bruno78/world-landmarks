@@ -7,9 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -18,7 +16,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.LruCache;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -29,7 +26,7 @@ import android.widget.Toast;
 
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.brunogtavares.worldlandmarks.utils.BitmapUtils;
-import com.brunogtavares.worldlandmarks.utils.CameraUtils;
+import com.brunogtavares.worldlandmarks.utils.PermissionUtils;
 import com.brunogtavares.worldlandmarks.utils.LandmarkUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -39,9 +36,7 @@ import com.google.firebase.ml.vision.cloud.FirebaseVisionCloudDetectorOptions;
 import com.google.firebase.ml.vision.cloud.landmark.FirebaseVisionCloudLandmark;
 import com.google.firebase.ml.vision.cloud.landmark.FirebaseVisionCloudLandmarkDetector;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.mindorks.paracamera.Camera;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -50,7 +45,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
-import static com.brunogtavares.worldlandmarks.utils.CameraUtils.*;
+import static com.brunogtavares.worldlandmarks.utils.PermissionUtils.*;
 
 
 /**
@@ -154,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
                 PackageManager.PERMISSION_GRANTED) {
 
             // If you do not have permission, request it
-            CameraUtils.requestPermissions((Activity)mContext);
+            PermissionUtils.requestPermissions((Activity)mContext);
         }
         else {
             // Launch the camera if the permission exists
@@ -190,6 +185,19 @@ public class MainActivity extends AppCompatActivity {
     // Gallery Permissions
     //
     private void startGalleryChooser() {
+        if(ContextCompat.checkSelfPermission(mContext,
+                Manifest.permission.READ_EXTERNAL_STORAGE) !=  PackageManager.PERMISSION_GRANTED) {
+
+            // If you do not have permission, request it
+            PermissionUtils.requestPermissions((Activity)mContext);
+        }
+        else {
+            openGalleryIntent();
+        }
+
+    }
+
+    private void openGalleryIntent() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(Intent.createChooser(intent, "Select a photo"),
@@ -218,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                         grantResults[2] == PackageManager.PERMISSION_GRANTED) {
 
                     // If you get permission, launch the gallery
-                    startGalleryChooser();
+                    openGalleryIntent();
                 }
                 else {
 
