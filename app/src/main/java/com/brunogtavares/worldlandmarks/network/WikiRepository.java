@@ -1,5 +1,8 @@
 package com.brunogtavares.worldlandmarks.network;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+
 import com.brunogtavares.worldlandmarks.model.WikiEntry;
 import com.brunogtavares.worldlandmarks.network.wikipedia.WikipediaAPIClient;
 import com.brunogtavares.worldlandmarks.network.wikipedia.WikipediaAPIService;
@@ -24,25 +27,26 @@ public class WikiRepository {
         this.mService = service;
     }
 
-    public static WikiRepository getsInstance() {
+    public static WikiRepository getInstance() {
         if (sInstance == null) {
             synchronized (LOCK) {
                 WikipediaAPIService service = WikipediaAPIClient.getRetrofitInstance()
                         .create(WikipediaAPIService.class);
+                sInstance = new WikiRepository(service);
 
             }
         }
         return sInstance;
     }
 
-    public WikiEntry getWikiEntry(String placeName) {
-        final WikiEntry[] wikiEntry = new WikiEntry[1];
+    public LiveData<WikiEntry> getWikiEntry(String placeName) {
+        final MutableLiveData<WikiEntry> wikiEntry = new MutableLiveData<>();
 
         Call<WikiEntry> call = mService.getInfo(placeName);
         call.enqueue(new Callback<WikiEntry>() {
             @Override
             public void onResponse(Call<WikiEntry> call, Response<WikiEntry> response) {
-                wikiEntry[0] = response.body();
+                wikiEntry.setValue(response.body());
             }
 
             @Override
@@ -51,6 +55,6 @@ public class WikiRepository {
             }
         });
 
-        return wikiEntry[0];
+        return wikiEntry;
     }
 }

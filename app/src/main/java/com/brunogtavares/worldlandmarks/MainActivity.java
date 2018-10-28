@@ -1,5 +1,6 @@
 package com.brunogtavares.worldlandmarks;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -7,11 +8,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.LruCache;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -21,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
+import com.brunogtavares.worldlandmarks.utils.BitmapUtils;
 import com.brunogtavares.worldlandmarks.utils.CameraUtils;
 import com.brunogtavares.worldlandmarks.utils.LandmarkUtils;
 import com.bumptech.glide.Glide;
@@ -33,6 +41,8 @@ import com.google.firebase.ml.vision.cloud.landmark.FirebaseVisionCloudLandmarkD
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.mindorks.paracamera.Camera;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -45,12 +55,14 @@ import static com.brunogtavares.worldlandmarks.utils.CameraUtils.*;
 
 /**
  * https://firebase.google.com/docs/ml-kit/android/recognize-landmarks
+ * Using File Provider to capture image:
+ * https://android.jlelse.eu/androids-new-image-capture-from-a-camera-using-file-provider-dd178519a954
  */
 public class MainActivity extends AppCompatActivity {
 
     private static final String RESULT_KEY = "RESULT_KEY";
     public static final String URI_KEY = "URI_KEY";
-    public static final String BITMAP_KEY = "BITMAP_KEY";
+    private static final int REQUEST_CAPTURE_IMAGE =  100;
 
     @BindView(R.id.iv_image) ImageView mImage;
     @BindView(R.id.tv_not_found) TextView mNotFoundText;
@@ -64,11 +76,8 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.rl_loading_layout) RelativeLayout mLoadingLayout;
 
     private Uri mImageUri;
-    private Bitmap mImageBitmap;
     private Context mContext;
     private MyLandmark mMyLandmark;
-
-    Camera mCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,26 +92,19 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;
 
         if(savedInstanceState != null) {
-            if(savedInstanceState.containsKey(BITMAP_KEY)) {
-                mImageBitmap = savedInstanceState.getParcelable(BITMAP_KEY);
-                displayImage();
-            }
             if(savedInstanceState.containsKey(URI_KEY)) {
                 mImageUri = savedInstanceState.getParcelable(URI_KEY);
                 displayImage();
             }
             if(savedInstanceState.containsKey(RESULT_KEY)) {
                 mMyLandmark = savedInstanceState.getParcelable(RESULT_KEY);
-                processDummyData2(mMyLandmark);
+                setViews(mMyLandmark);
                 displayInfo();
             }
         }
         else {
             displayInitialState();
         }
-
-
-        mCamera = CameraUtils.buildCamera(this);
 
         mGetImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        takePicture(mContext, mCamera);
+                                        startCamera();
                                     }
                                 });
                 builder.create().show();
@@ -136,12 +138,57 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
+
     }
+
+    //=================================
+    // Camera Permissions
+    //
+    private void startCamera() {
+        // Check for the external storage permission
+        if (ContextCompat.checkSelfPermission(mContext,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(mContext,
+                Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED) {
+
+            // If you do not have permission, request it
+            CameraUtils.requestPermissions((Activity)mContext);
+        }
+        else {
+            // Launch the camera if the permission exists
+            openCameraIntent();
+        }
+    }
+
+    private void openCameraIntent() {
+        Intent pictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if(pictureIntent.resolveActivity(getPackageManager()) != null) {
+           // Create a file to store the image
+           File photoFile = null;
+           try {
+               photoFile = BitmapUtils.createImageFile(mContext);
+           } catch (IOException e) {
+               Timber.d("Error occurred while creating the file: " + e);
+               return;
+           }
+           mImageUri = FileProvider.getUriForFile(this,
+                    getPackageName() + ".provider", photoFile);
+           pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+           startActivityForResult(pictureIntent, REQUEST_CAPTURE_IMAGE);
+
+        }
+    }
+
+    //
+    // *** End Camera Permissions ***
+    //============================================
+
 
     //=================================
     // Gallery Permissions
     //
-
     private void startGalleryChooser() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
@@ -160,10 +207,12 @@ public class MainActivity extends AppCompatActivity {
 
                 if (grantResults.length > 0 &&
                         grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                        grantResults[1] == PackageManager.PERMISSION_GRANTED &&
+                        grantResults[2] == PackageManager.PERMISSION_GRANTED) {
 
                     // If you get permission, launch the camera
-                    launchCamera(mCamera);
+                    // launchCamera(mCamera);
+                    openCameraIntent();
                 }
                 else if (grantResults.length > 0 &&
                         grantResults[2] == PackageManager.PERMISSION_GRANTED) {
@@ -186,17 +235,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(resultCode == Activity.RESULT_OK && requestCode == Camera.REQUEST_TAKE_PHOTO){
-            mImageBitmap = mCamera.getCameraBitmap();
-
-            if(mImageBitmap != null) {
+        if (requestCode == REQUEST_CAPTURE_IMAGE && resultCode == Activity.RESULT_OK) {
+            // don't compare the data to null, it will always come as  null
+            // because we are providing a file URI, so load with the imageFilePath
+            // we obtained before opening the cameraIntent
+            if(mImageUri != null) {
                 displayImage();
-                // TODO: Uncomment the right method.
-                Glide.with(this).load(mImageBitmap).into(mImage);
-                processBitmapImage(mImageBitmap);
-                // processDummyData();
-            }else{
-                Toast.makeText(this.getApplicationContext(), R.string.photo_not_taken, Toast.LENGTH_SHORT).show();
+                Glide.with(this).load(mImageUri).into(mImage);
+                // processFileImage(mImageUri);
+                processDummyData();
             }
         }
         else if (resultCode == Activity.RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
@@ -204,10 +251,9 @@ public class MainActivity extends AppCompatActivity {
 
             if(mImageUri != null) {
                 displayImage();
-
                 Glide.with(this).load(mImageUri).into(mImage);
-                processFileImage(mImageUri);
-                // processDummyData();
+                // processFileImage(mImageUri);
+                processDummyData();
             }
         }
     }
@@ -220,11 +266,6 @@ public class MainActivity extends AppCompatActivity {
     //=================================
     // Firebase Vision Cloud
     //
-    private void processBitmapImage(Bitmap bitmapImage) {
-        FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmapImage);
-        detectLandmark(image);
-    }
-
     private void processFileImage(Uri imageUri) {
         FirebaseVisionImage image;
         try {
@@ -254,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
                         // Task completed successfully
                         // For now, I'm getting only one result. Later
                         setMyLandmark(firebaseVisionCloudLandmarks.get(0));
-                        processDummyData2(mMyLandmark);
+                        setViews(mMyLandmark);
 
                     }
                 })
@@ -263,65 +304,27 @@ public class MainActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Exception e) {
                         // Task failed with an exception
                         Timber.d("Unable to detect image: " + e);
-                        processDummyData2(new MyLandmark());
+                        setViews(new MyLandmark());
                     }
                 });
 
     }
 
 
-    // The bitmap is saved in the app's folder
-    //  If the saved bitmap is not required use following code
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(mCamera != null) mCamera.deleteImage();
-    }
+//    // The bitmap is saved in the app's folder
+//    //  If the saved bitmap is not required use following code
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        if(mCamera != null) mCamera.deleteImage();
+//    }
     //
     // *** End Firebase Vision Cloud ***
     //============================================
 
     //=================================
-    // Handling saving state
+    // Setting Views
     //
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        if(mImageBitmap != null) {
-            outState.putParcelable(BITMAP_KEY, mImageBitmap);
-        }
-        if(mImageUri != null) {
-            outState.putParcelable(URI_KEY, mImageUri);
-        }
-        if(mMyLandmark != null) {
-            outState.putParcelable(RESULT_KEY, mMyLandmark);
-        }
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if(mImageBitmap != null) {
-            Glide.with(this).load(mImageBitmap).into(mImage);
-            displayImage();
-        }
-        if(mImageUri != null) {
-            Glide.with(this).load(mImageUri).into(mImage);
-            displayImage();
-        }
-        if(mMyLandmark != null) {
-            processDummyData2(mMyLandmark);
-            displayInfo();
-        }
-
-    }
-    //
-    // *** End Handling Saving State ***
-    //============================================
-
     // TODO: Dummy data to void excessive calls to API. Delete this when is done testing.
     private void processDummyData() {
 
@@ -335,16 +338,27 @@ public class MainActivity extends AppCompatActivity {
         double longitude = 48.8584d;
         double latitude = 2.2945d;
 
-        if(mImageUri != null || mImageBitmap != null) {
+        if(mImageUri != null) {
             mLandmark.setText(landmarkName);
             mPlace.setText(location);
             mConfidence.setText(confidence);
         }
 
-        findViewById(R.id.ll_result_list_item).setOnClickListener(new View.OnClickListener() {
+        mMyLandmark = new MyLandmark(landmarkName, confidence, location, longitude, latitude);
+
+        mResultInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(com.brunogtavares.worldlandmarks.MainActivity.this, "Take me to image info...", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(com.brunogtavares.worldlandmarks.MainActivity.this, ImageInfoActivity.class);
+                intent.putExtra(ImageInfoActivity.LANDMARK_BUNDLE_KEY, mMyLandmark);
+
+                if(mImageUri != null) {
+                    intent.putExtra(URI_KEY, mImageUri);
+                    Timber.d("Path from Image uri: " + mImageUri.toString());
+                }
+
+                startActivity(intent);
             }
         });
     }
@@ -361,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void processDummyData2(MyLandmark myLandmark) {
+    private void setViews(MyLandmark myLandmark) {
 
         if(myLandmark == null) {
             displayError();
@@ -369,12 +383,11 @@ public class MainActivity extends AppCompatActivity {
         else {
             displayInfo();
 
-
             String landmarkName = myLandmark.getLandmark();
             String location = myLandmark.getLocation();
             String confidence = myLandmark.getConfidence();
 
-            if(mImageUri != null || mImageBitmap != null) {
+            if(mImageUri != null) {
                 mLandmark.setText(landmarkName);
                 mPlace.setText(location);
                 mConfidence.setText(confidence);
@@ -382,8 +395,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-
-        findViewById(R.id.ll_result_list_item).setOnClickListener(new View.OnClickListener() {
+        mResultInfo.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -394,17 +406,54 @@ public class MainActivity extends AppCompatActivity {
                 if(mImageUri != null) {
                     intent.putExtra(URI_KEY, mImageUri);
                 }
-                if(mImageBitmap != null) {
-                    intent.putExtra(BITMAP_KEY, mImageBitmap);
-                }
 
                 startActivity(intent);
 
             }
         });
     }
+    //
+    // *** End Ending Setting Views ***
+    //============================================
 
-    // TODO FIX this to refactor code and display it properly
+    //=================================
+    // Handling saving state
+    //
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if(mImageUri != null) {
+            outState.putParcelable(URI_KEY, mImageUri);
+        }
+        if(mMyLandmark != null) {
+            outState.putParcelable(RESULT_KEY, mMyLandmark);
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(mImageUri != null) {
+            Glide.with(this).load(mImageUri).into(mImage);
+            displayImage();
+        }
+        if(mMyLandmark != null) {
+            // setViews(mMyLandmark); // TODO delete this
+            processDummyData();
+            displayInfo();
+        }
+
+    }
+    //
+    // *** End Handling Saving State ***
+    //============================================
+
+    //=================================
+    // Managing Views
+    //
     private void displayImage() {
         mImage.setVisibility(View.VISIBLE);
         mGetImageButton.setVisibility(View.GONE);
@@ -423,7 +472,6 @@ public class MainActivity extends AppCompatActivity {
         mNotFoundText.setVisibility(View.GONE);
         mLoadingLayout.setVisibility(View.GONE);
 
-        mImageBitmap = null;
         mImageUri = null;
         mLandmark.setText("");
         mPlace.setText("");
@@ -431,8 +479,6 @@ public class MainActivity extends AppCompatActivity {
         mImage.setImageResource(0);
 
         mMyLandmark = null;
-
-        if(mCamera != null) mCamera.deleteImage();
 
     }
 
@@ -447,5 +493,8 @@ public class MainActivity extends AppCompatActivity {
         mLoadingLayout.setVisibility(View.GONE);
         mResultInfo.setVisibility(View.VISIBLE);
     }
+    //
+    // *** End Managing Views ***
+    //============================================
 
 }

@@ -13,9 +13,23 @@ public class WikiEntry {
     @SerializedName("extract")
     private String description;
 
+    public WikiEntry() {}
+
+    public WikiEntry(String title, String extract) {
+        this.title = title;
+        this.description = extract;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     public String getTitle() {
         return title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getDescription() {

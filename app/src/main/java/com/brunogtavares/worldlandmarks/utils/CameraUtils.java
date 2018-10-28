@@ -19,45 +19,6 @@ public class CameraUtils {
 
     public static final int PERMISSION_REQUEST_CODE = 1;
 
-    public static Camera buildCamera(Activity activity) {
-
-        return new Camera.Builder()
-                .resetToCorrectOrientation(true) // it will rotate the camera bitmap to the correct orientation from meta data
-                .setTakePhotoRequestCode(Camera.REQUEST_TAKE_PHOTO)
-                .setDirectory("WorldLandmakrs")
-                .setName("landmark_" + System.currentTimeMillis())
-                .setImageFormat(Camera.IMAGE_JPEG)
-                .setCompression(75)
-                .build(activity);
-    }
-
-    public static void takePicture(Context context, Camera camera) {
-
-        // Check for the external storage permission
-        if (ContextCompat.checkSelfPermission(context,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
-                PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(context,
-                Manifest.permission.CAMERA) !=
-                PackageManager.PERMISSION_GRANTED) {
-
-            // If you do not have permission, request it
-            requestPermissions((Activity) context);
-        }
-        else {
-            // Launch the camera if the permission exists
-            launchCamera(camera);
-        }
-    }
-
-    public static void launchCamera(Camera camera) {
-
-        try {
-            camera.takePicture();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public static void requestPermissions(Activity activity) {
 
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity,

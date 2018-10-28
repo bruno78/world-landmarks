@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.brunogtavares.worldlandmarks.R;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class BitmapUtils {
      * @param imagePath The path of the photo to be resampled.
      * @return The resampled bitmap
      */
-    static Bitmap resamplePic(Context context, String imagePath) {
+    public static Bitmap resamplePic(Context context, String imagePath) {
 
         // Get device screen size information
         DisplayMetrics metrics = new DisplayMetrics();
@@ -73,7 +74,7 @@ public class BitmapUtils {
      * @return The temporary image file.
      * @throws IOException Thrown if there is an error creating the file
      */
-    static File createTempImageFile(Context context) throws IOException {
+    public static File createTempImageFile(Context context) throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
                 Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -92,7 +93,7 @@ public class BitmapUtils {
      * @param context   The application context.
      * @param imagePath The path of the photo to be deleted.
      */
-    static boolean deleteImageFile(Context context, String imagePath) {
+    public static boolean deleteImageFile(Context context, String imagePath) {
         // Get the file
         File imageFile = new File(imagePath);
 
@@ -130,7 +131,7 @@ public class BitmapUtils {
      * @param image   The image to be saved.
      * @return The path of the saved image.
      */
-    static String saveImage(Context context, Bitmap image) {
+    public static String saveImage(Context context, Bitmap image) {
 
         String savedImagePath = null;
 
@@ -140,7 +141,7 @@ public class BitmapUtils {
         String imageFileName = "JPEG_" + timeStamp + ".jpg";
         File storageDir = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                        + "/Emojify");
+                        + "/WorldLandmarks");
         boolean success = true;
         if (!storageDir.exists()) {
             success = storageDir.mkdirs();
@@ -175,7 +176,7 @@ public class BitmapUtils {
      * @param context   The image context.
      * @param imagePath The path of the image to be shared.
      */
-    static void shareImage(Context context, String imagePath) {
+    public static void shareImage(Context context, String imagePath) {
         // Create the share intent and start the share activity
         File imageFile = new File(imagePath);
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
@@ -184,4 +185,30 @@ public class BitmapUtils {
         shareIntent.putExtra(Intent.EXTRA_STREAM, photoURI);
         context.startActivity(shareIntent);
     }
+
+    public static ByteArrayOutputStream compressImage(Bitmap image) {
+        ByteArrayOutputStream bs = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 50, bs);
+        return bs;
+    }
+
+    public static Bitmap getBitmapFromIntent(Intent intent, String key) {
+        return BitmapFactory.decodeByteArray(
+                intent.getByteArrayExtra(key),
+                0,  intent.getByteArrayExtra(key).length);
+    }
+
+    public static File createImageFile(Context context) throws IOException {
+        String timeStamp =
+                new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "IMG_" + timeStamp + "_";
+        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,
+                ".jpg",
+                storageDir
+        );
+        return image;
+    }
+
 }
