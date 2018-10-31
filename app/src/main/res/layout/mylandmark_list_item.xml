@@ -15,11 +15,10 @@
         android:orientation="vertical">
 
         <ImageView
-            android:id="@+id/thumbnail"
+            android:id="@+id/iv_mylandmark_thumbnail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scaleType="centerCrop"
-            android:background="@color/photo_placeholder" />
+            android:scaleType="centerCrop" />
 
         <TextView
             android:id="@+id/tv_mylandmark_name"
@@ -30,7 +29,6 @@
             android:paddingTop="16dp"
             android:paddingRight="16dp"
             android:paddingBottom="4dp"
-            android:textColor="@color/primary_text"
             android:ellipsize="end"
             android:maxLines="4" />
 
@@ -42,7 +40,6 @@
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:paddingBottom="16dp"
-            android:textColor="@color/theme_secondary_text"
             android:maxLines="2"
             android:ellipsize="end" />
     </LinearLayout>

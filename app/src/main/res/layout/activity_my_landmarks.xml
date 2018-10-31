@@ -20,6 +20,7 @@
             android:layout_below="@+id/pb_loading_list"
             android:text="@string/loading"/>
         <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_mylandmark_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </RelativeLayout>
