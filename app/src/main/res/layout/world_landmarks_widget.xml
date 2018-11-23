@@ -39,5 +39,17 @@
 
     </HorizontalScrollView>
 
+    <!-- TODO: fix hard code string -->
+    <TextView
+        android:id="@+id/tv_widget_empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp"
+        android:gravity="center"
+        android:text="No Landmarks yet!"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        />
+
 
 </LinearLayout>

@@ -3,6 +3,8 @@ package com.brunogtavares.worldlandmarks.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.firebase.database.DataSnapshot;
+
 /**
  * Created by brunogtavares on 10/20/18.
  */
