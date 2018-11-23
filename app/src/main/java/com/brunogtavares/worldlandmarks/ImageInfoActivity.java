@@ -96,7 +96,7 @@ public class ImageInfoActivity extends AppCompatActivity
                 mImageUri = intent.getParcelableExtra(MainActivity.URI_KEY);
                 Glide.with(this).load(mImageUri).into(mImageInfo);
             }
-            mLandmarkName = mMyLandmark.getLandmark();
+            mLandmarkName = mMyLandmark.getLandmarkName();
 
             loadViews();
         }
@@ -145,7 +145,7 @@ public class ImageInfoActivity extends AppCompatActivity
     }
 
     private void loadViews() {
-        mToolbarLayout.setTitle(mMyLandmark.getLandmark());
+        mToolbarLayout.setTitle(mMyLandmark.getLandmarkName());
         mLocationInfo.setText(mMyLandmark.getLocation());
         displayLoading();
         getLoaderManager().initLoader(WIKIENTRY_LOADER_ID, null, this);
@@ -169,11 +169,11 @@ public class ImageInfoActivity extends AppCompatActivity
     }
 
     private void saveInfo() {
-        String landmark = mMyLandmark.getLandmark();
+        String landmark = mMyLandmark.getLandmarkName();
         String location = mMyLandmark.getLocation();
         String confidence = mMyLandmark.getConfidence();
-        String latitude = Double.toString(mMyLandmark.getLatitude());
-        String longitude = Double.toString(mMyLandmark.getLongitude());
+        String latitude = mMyLandmark.getLatitude();
+        String longitude = mMyLandmark.getLongitude();
         String description = mWikipediaContent.getText().toString();
 
 
@@ -195,7 +195,7 @@ public class ImageInfoActivity extends AppCompatActivity
         byte[] data = BitmapUtils.getUploadTask(mImageUri, getApplication());
         UploadTask uploadTask = newStorageEntry.putBytes(data);
 
-        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+        uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
             @Override
             public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
                 if(!task.isSuccessful()) {

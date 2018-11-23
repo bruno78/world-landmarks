@@ -14,8 +14,8 @@ public class MyLandmark implements Parcelable {
     private String confidence;
     private String location;
     private String imageUri;
-    private double latitude;
-    private double longitude;
+    private String latitude;
+    private String longitude;
     private String description;
 
     public MyLandmark(){}
@@ -26,8 +26,8 @@ public class MyLandmark implements Parcelable {
         this.location = location;
     }
 
-    public MyLandmark(String landmarkName, String confidence, String location, double latitude,
-                      double longitude) {
+    public MyLandmark(String landmarkName, String confidence, String location, String latitude,
+                      String longitude) {
         this.landmarkName = landmarkName;
         this.confidence = confidence;
         this.location = location;
@@ -36,7 +36,7 @@ public class MyLandmark implements Parcelable {
     }
 
     public MyLandmark(String landmarkName, String confidence, String location, String imageUri,
-                      double latitude, double longitude) {
+                      String latitude, String longitude) {
         this.landmarkName = landmarkName;
         this.confidence = confidence;
         this.location = location;
@@ -46,7 +46,7 @@ public class MyLandmark implements Parcelable {
     }
 
     public MyLandmark(String landmarkName, String confidence, String location, String imageUri,
-                      double latitude, double longitude, String description) {
+                      String latitude, String longitude, String description) {
         this.landmarkName = landmarkName;
         this.confidence = confidence;
         this.location = location;
@@ -57,7 +57,7 @@ public class MyLandmark implements Parcelable {
     }
 
     public MyLandmark(String id, String landmarkName, String confidence, String location, String imageUri,
-                      double latitude, double longitude, String description) {
+                      String latitude, String longitude, String description) {
         this.id = id;
         this.landmarkName = landmarkName;
         this.confidence = confidence;
@@ -72,11 +72,11 @@ public class MyLandmark implements Parcelable {
 
     public void setId(String id) { this.id = id; }
 
-    public String getLandmark() {
+    public String getLandmarkName() {
         return landmarkName;
     }
 
-    public void setLandMarkName(String landmarkName) {
+    public void setLandmarkName(String landmarkName) {
         this.landmarkName = landmarkName;
     }
 
@@ -104,19 +104,19 @@ public class MyLandmark implements Parcelable {
         this.imageUri = imageUri;
     }
 
-    public double getLatitude() {
+    public String getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(double latitude) {
+    public void setLatitude(String latitude) {
         this.latitude = latitude;
     }
 
-    public double getLongitude() {
+    public String getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(double longitude) {
+    public void setLongitude(String longitude) {
         this.longitude = longitude;
     }
 
@@ -140,19 +140,19 @@ public class MyLandmark implements Parcelable {
         dest.writeString(this.confidence);
         dest.writeString(this.location);
         dest.writeString(this.imageUri);
-        dest.writeDouble(this.latitude);
-        dest.writeDouble(this.longitude);
+        dest.writeString(this.latitude);
+        dest.writeString(this.longitude);
         dest.writeString(this.description);
     }
 
-    protected MyLandmark(Parcel in) {
+    public MyLandmark(Parcel in) {
         this.id = in.readString();
         this.landmarkName = in.readString();
         this.confidence = in.readString();
         this.location = in.readString();
         this.imageUri = in.readString();
-        this.longitude = in.readDouble();
-        this.latitude = in.readDouble();
+        this.longitude = in.readString();
+        this.latitude = in.readString();
         this.description = in.readString();
     }
 

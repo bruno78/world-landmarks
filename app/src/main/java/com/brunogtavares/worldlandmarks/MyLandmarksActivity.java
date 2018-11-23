@@ -3,6 +3,7 @@ package com.brunogtavares.worldlandmarks;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +27,9 @@ public class MyLandmarksActivity extends AppCompatActivity {
 
     @BindView(R.id.rv_mylandmark_list) RecyclerView mRecyclerView;
 
+    // TODO Test the recycler view.
+    // Make sure each item is clickable
+
     FirebaseRecyclerAdapter mAdapter;
     MyLandmark mMyLandmark;
 
@@ -39,6 +43,8 @@ public class MyLandmarksActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         mUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        mRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         setViews();
 
@@ -85,12 +91,14 @@ public class MyLandmarksActivity extends AppCompatActivity {
            @Override
            protected void onBindViewHolder(@NonNull MyLandmarkHolder holder, int position, @NonNull MyLandmark model) {
                mMyLandmark = model;
-
+                // TODO maybe issue here
                Glide.with(MyLandmarksActivity.this).load(mMyLandmark.getImageUri()).into(holder.mThumbnailView);
-               holder.mMyLandmarkName.setText(mMyLandmark.getLandmark());
+               holder.mMyLandmarkName.setText(mMyLandmark.getLandmarkName());
                holder.mMyLandmarkLocation.setText(mMyLandmark.getLocation());
            }
        };
+        findViewById(R.id.pb_loading_list).setVisibility(View.GONE);
+        findViewById(R.id.tv_mylandmarks_loading).setVisibility(View.GONE);
 
         mRecyclerView.setAdapter(mAdapter);
     }

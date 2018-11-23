@@ -125,4 +125,7 @@
     <string name="auth_failed">Authentication failed</string>
     <string name="loading">Loading…</string>
     <string name="required">Required.</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="title_activity_my_landmark_detail">MyLandmarkDetailActivity</string>
 </resources>

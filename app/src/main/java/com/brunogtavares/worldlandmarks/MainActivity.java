@@ -343,8 +343,8 @@ public class MainActivity extends AppCompatActivity {
         String landmarkName = "Eiffel Tower";
         String location = "Paris, France";
         String confidence = "63.33%";
-        double longitude = 48.8584d;
-        double latitude = 2.2945d;
+        String longitude = "48.8584";
+        String latitude = "2.2945";
 
         if(mImageUri != null) {
             mLandmark.setText(landmarkName);
@@ -376,8 +376,8 @@ public class MainActivity extends AppCompatActivity {
         String landmarkName = landmark.getLandmark();
         String location = LandmarkUtils.getLocation(this, landmark.getLocations());
         String confidence = LandmarkUtils.getPercentage(landmark.getConfidence());
-        double longitude = LandmarkUtils.getLongitude(landmark.getLocations());
-        double latitude = LandmarkUtils.getLatitude(landmark.getLocations());
+        String longitude = String.valueOf(LandmarkUtils.getLongitude(landmark.getLocations()));
+        String latitude = String.valueOf(LandmarkUtils.getLatitude(landmark.getLocations()));
 
         mMyLandmark = new MyLandmark(landmarkName, confidence, location, latitude, longitude);
     }
@@ -391,7 +391,7 @@ public class MainActivity extends AppCompatActivity {
         else {
             displayInfo();
 
-            String landmarkName = myLandmark.getLandmark();
+            String landmarkName = myLandmark.getLandmarkName();
             String location = myLandmark.getLocation();
             String confidence = myLandmark.getConfidence();
 
@@ -500,6 +500,11 @@ public class MainActivity extends AppCompatActivity {
     private void displayInfo() {
         mLoadingLayout.setVisibility(View.GONE);
         mResultInfo.setVisibility(View.VISIBLE);
+    }
+
+    public void golistActivity(View view) {
+        Intent intent = new Intent(this, MyLandmarksActivity.class);
+        startActivity(intent);
     }
     //
     // *** End Managing Views ***

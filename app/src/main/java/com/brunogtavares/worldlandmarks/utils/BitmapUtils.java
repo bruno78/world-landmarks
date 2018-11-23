@@ -188,9 +188,12 @@ public class BitmapUtils {
         context.startActivity(shareIntent);
     }
 
-    public static ByteArrayOutputStream compressImage(Bitmap image) {
+    public static ByteArrayOutputStream compressImage(Bitmap image, int value) {
+        if(value == 0){
+            value = 50;
+        }
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.JPEG, 50, bs);
+        image.compress(Bitmap.CompressFormat.JPEG, value, bs);
         return bs;
     }
 

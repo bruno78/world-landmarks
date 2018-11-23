@@ -56,6 +56,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
+        if(mAuth.getCurrentUser() != null) goToMainActivity();
 
     }
 
@@ -63,7 +64,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
     public void onStart() {
         super.onStart();
 
-        // Check if user is sgned in (non-null) and update UI accordingly
+        // Check if user is signed in (non-null) and update UI accordingly
         FirebaseUser currentUser = mAuth.getCurrentUser();
         updateUI(currentUser);
     }
