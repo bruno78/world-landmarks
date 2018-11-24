@@ -1,5 +1,7 @@
 package com.brunogtavares.worldlandmarks;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,12 +18,17 @@ import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static com.brunogtavares.worldlandmarks.MyLandmarkDetailActivity.MY_LANDMARK_KEY;
 
 public class MyLandmarksActivity extends AppCompatActivity {
 
@@ -89,10 +96,19 @@ public class MyLandmarksActivity extends AppCompatActivity {
            }
 
            @Override
-           protected void onBindViewHolder(@NonNull MyLandmarkHolder holder, int position, @NonNull MyLandmark model) {
+           protected void onBindViewHolder(@NonNull final MyLandmarkHolder holder, int position, @NonNull MyLandmark model) {
                mMyLandmark = model;
-                // TODO maybe issue here
-               Glide.with(MyLandmarksActivity.this).load(mMyLandmark.getImageUri()).into(holder.mThumbnailView);
+
+               String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+               StorageReference storageReference = FirebaseStorage.getInstance().getReference().child(userId);
+               storageReference.child(mMyLandmark.getImageUri()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                   @Override
+                   public void onSuccess(Uri uri) {
+                       Glide.with(MyLandmarksActivity.this).load(uri)
+                               .into(holder.mThumbnailView);
+                   }
+               });
+
                holder.mMyLandmarkName.setText(mMyLandmark.getLandmarkName());
                holder.mMyLandmarkLocation.setText(mMyLandmark.getLocation());
            }
@@ -104,7 +120,7 @@ public class MyLandmarksActivity extends AppCompatActivity {
     }
 
 
-    public class MyLandmarkHolder extends RecyclerView.ViewHolder {
+    public class MyLandmarkHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         @BindView(R.id.iv_mylandmark_thumbnail)ImageView mThumbnailView;
         @BindView(R.id.tv_mylandmark_name) TextView mMyLandmarkName;
@@ -113,7 +129,19 @@ public class MyLandmarksActivity extends AppCompatActivity {
         public MyLandmarkHolder(@NonNull View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+
+            itemView.setOnClickListener(this);
         }
 
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(getApplicationContext(), MyLandmarkDetailActivity.class);
+
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(MY_LANDMARK_KEY, mMyLandmark);
+            intent.putExtras(bundle);
+            startActivity(intent);
+
+        }
     }
 }

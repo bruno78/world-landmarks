@@ -21,7 +21,6 @@ import com.brunogtavares.worldlandmarks.R;
 public class WorldLandmarksWidget extends AppWidgetProvider {
 
     public static String ACTION_CLICK = "ACTION_CLICK";
-    public static String EXTRA_ITEM_ID = "EXTRA_ITEM_ID";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -76,6 +75,15 @@ public class WorldLandmarksWidget extends AppWidgetProvider {
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
 
         }
+    }
+
+    @Override
+    public void onReceive(final Context context, Intent intent) {
+        final String action = intent.getAction();
+        if (action.equals(AppWidgetManager.ACTION_APPWIDGET_UPDATE)) {
+            update(context);
+        }
+        super.onReceive(context, intent);
     }
 }
 

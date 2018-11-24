@@ -128,4 +128,7 @@
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="title_activity_my_landmark_detail">MyLandmarkDetailActivity</string>
+    <string name="dialog_delete_my_landmark">Do you wish to delete this landmark?</string>
+    <string name="yes">yes</string>
+    <string name="cancel">Cancel</string>
 </resources>

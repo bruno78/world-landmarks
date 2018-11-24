@@ -61,7 +61,7 @@ public class WikipediaAPIUtils {
                 Timber.d("Error response code: " + urlConnection.getResponseCode());
             }
         } catch (IOException e) {
-            Timber.d( "Problem retrieving movies JSON results.", e);
+            Timber.d( "Problem retrieving wikipedia JSON results.", e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -99,21 +99,23 @@ public class WikipediaAPIUtils {
         WikiEntry wikiEntry = new WikiEntry();
 
         JsonElement jsonElement = new JsonParser().parse(jsonResponse);
-        JsonElement pages = jsonElement.getAsJsonObject().get("query").getAsJsonObject().get("pages");
 
-        Set<Map.Entry<String, JsonElement>> entrySet = pages.getAsJsonObject().entrySet();
+        if(jsonElement != null) {
+            JsonElement pages = jsonElement.getAsJsonObject().get("query").getAsJsonObject().get("pages");
+            Set<Map.Entry<String, JsonElement>> entrySet = pages.getAsJsonObject().entrySet();
 
-        for(Map.Entry<String,JsonElement> entry : entrySet){
-            pageNumber = entry.getValue();
+            for(Map.Entry<String,JsonElement> entry : entrySet){
+                pageNumber = entry.getValue();
+            }
+
+            if(pageNumber != null) {
+                title =  pageNumber.getAsJsonObject().get("title");
+                extract = pageNumber.getAsJsonObject().get("extract");
+            }
+
+            if(title != null) wikiEntry.setTitle(title.getAsString());
+            if(extract != null) wikiEntry.setDescription(extract.getAsString());
         }
-
-        if(pageNumber != null) {
-            title =  pageNumber.getAsJsonObject().get("title");
-            extract = pageNumber.getAsJsonObject().get("extract");
-        }
-
-        if(title != null) wikiEntry.setTitle(title.getAsString());
-        if(extract != null) wikiEntry.setDescription(extract.getAsString());
 
         return wikiEntry;
     }

@@ -1,5 +1,7 @@
 package com.brunogtavares.worldlandmarks;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +22,7 @@ import com.brunogtavares.worldlandmarks.Firebase.FirebaseEntry;
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.brunogtavares.worldlandmarks.model.WikiEntry;
 import com.brunogtavares.worldlandmarks.utils.BitmapUtils;
+import com.brunogtavares.worldlandmarks.widget.WorldLandmarksWidget;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -212,12 +215,13 @@ public class ImageInfoActivity extends AppCompatActivity
             public void onComplete(@NonNull Task<Uri> task) {
                 if(task.isSuccessful()) {
 
-                    Uri downloadUrl = task.getResult();
-                    imageInfo.put(FirebaseEntry.IMAGE_URI, downloadUrl.toString());
+                    imageInfo.put(FirebaseEntry.IMAGE_URI, mFirebaseFileImagePath);
                     newEntry.updateChildren(imageInfo);
 
                     Toast.makeText(ImageInfoActivity.this, "Message Saved Sucessfully!", Toast.LENGTH_SHORT).show();
 
+                    updateWidget();
+                    goToMyLandmarksActivity();
                 }
                 else {
                     Toast.makeText(ImageInfoActivity.this, "Unable to download the file", Toast.LENGTH_SHORT).show();
@@ -225,6 +229,18 @@ public class ImageInfoActivity extends AppCompatActivity
             }
         });
 
+        // TODO: Verify if user is logged in before display widget
+        // TODO: Implment menu navigation including logout
+        // TODO: Fix fab on MyLandmark detail activity
+        // TODO: Add loading layout on MyLandmarks
+
+
+    }
+
+    private void goToMyLandmarksActivity() {
+        Intent myLandmarksIntent = new Intent(this, MyLandmarksActivity.class);
+        startActivity(myLandmarksIntent);
+        finish();
     }
 
     private void deleteInfo() {
@@ -255,6 +271,14 @@ public class ImageInfoActivity extends AppCompatActivity
         super.onSaveInstanceState(outState);
 
         outState.putString(DB_ENTRY_KEY, mKey);
+    }
+
+    private void updateWidget() {
+        Intent intent = new Intent(this, WorldLandmarksWidget.class);
+        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        int ids[] = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), WorldLandmarksWidget.class));
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
+        sendBroadcast(intent);
     }
 
 

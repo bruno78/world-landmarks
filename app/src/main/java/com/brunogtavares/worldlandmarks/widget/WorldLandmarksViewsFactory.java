@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.widget.RemoteViews;
@@ -14,11 +15,16 @@ import com.brunogtavares.worldlandmarks.Firebase.FirebaseEntry;
 import com.brunogtavares.worldlandmarks.R;
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.annotation.GlideModule;
+import com.bumptech.glide.module.AppGlideModule;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +39,7 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
     private Context mContext;
     private int mAppWidgetId;
     private List<MyLandmark> mMyLandmarkList;
+    private StorageReference mStorageReference;
     private String mUserId;
 
     public WorldLandmarksViewsFactory(Context context, Intent intent) {
@@ -45,6 +52,7 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
     public void onCreate() {
         mMyLandmarkList = new ArrayList<>();
         mUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mStorageReference = FirebaseStorage.getInstance().getReference().child(mUserId);
         getList();
     }
 
@@ -92,16 +100,18 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
     @Override
     public RemoteViews getViewAt(int position) {
 
-        MyLandmark myLandmark = mMyLandmarkList.get(position);
-
         final RemoteViews remoteViews = new RemoteViews(mContext.getPackageName(),
                 R.layout.widget_list_item);
 
+        MyLandmark myLandmark = mMyLandmarkList.get(position);
+
+        StorageReference imagePath = mStorageReference.child(myLandmark.getImageUri());
+
         try {
-            Bitmap bitmap = Glide.with(mContext)
+            Bitmap bitmap = GlideApp.with(mContext)
                     .asBitmap()
-                    .load(myLandmark.getImageUri())
-                    .submit(100,80)
+                    .load(imagePath)
+                    .submit(100, 80)
                     .get();
             remoteViews.setImageViewBitmap(R.id.iv_widget_landmark_image, bitmap);
         } catch (InterruptedException e) {
@@ -109,7 +119,6 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-
 
         remoteViews.setTextViewText(R.id.tv_widget_landmark_name, myLandmark.getLandmarkName());
         remoteViews.setTextViewText(R.id.tv_widget_landmark_location, myLandmark.getLocation());
@@ -137,3 +146,4 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
         return true;
     }
 }
+

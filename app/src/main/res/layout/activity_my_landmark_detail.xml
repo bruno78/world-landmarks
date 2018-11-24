@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.brunogtavares.worldlandmarks.ImageInfoActivity">
+    tools:context="com.brunogtavares.worldlandmarks.MyLandmarkDetailActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -15,7 +15,7 @@
         android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/toolbar_layout"
+            android:id="@+id/tl_mylandmark_detail_toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
@@ -49,7 +49,7 @@
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_image_info" />
+    <include layout="@layout/content_my_landmark_detail" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_mylandmark_detail"
