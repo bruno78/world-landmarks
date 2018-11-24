@@ -2,19 +2,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/grey_500"
     android:orientation="vertical"
-    android:background="#09C"
     android:padding="@dimen/widget_margin">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="5dp"
+        android:layout_height="44dp"
         android:padding="2dp"
         android:background="@color/colorPrimary">
 
         <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/tv_widget_title"
             android:layout_weight="3"
-            android:id="@+id/tv_widget_recipe_name"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:textColor="@android:color/white"
@@ -26,30 +26,31 @@
             android:text="@string/app_name" />
     </LinearLayout>
 
-    <HorizontalScrollView
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/widget_margin">
+        android:layout_margin="@dimen/cardview_margin">
 
-        <ListView xmlns:android="http://schemas.android.com/apk/res/android"
+        <StackView xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/lv_widget_listview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:loopViews="true"/>
 
-    </HorizontalScrollView>
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/tv_widget_empty_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="16dp"
+            android:gravity="center"
+            android:text="No Landmarks yet!"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            />
 
-    <!-- TODO: fix hard code string -->
-    <TextView
-        android:id="@+id/tv_widget_empty_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="16dp"
-        android:gravity="center"
-        android:text="No Landmarks yet!"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        />
+    </FrameLayout>
+
 
 
 </LinearLayout>

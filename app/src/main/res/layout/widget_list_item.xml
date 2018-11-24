@@ -1,47 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/cv_widget_list_item"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="@dimen/cardview_margin"
-    android:clickable="true"
-    android:focusable="true"
-    android:foreground="?selectableItemBackground">
+    xmlns:tool="http://schemas.android.com/tools"
+    android:id="@+id/ll_widget_list_item"
+    android:layout_width="180dp"
+    android:layout_height="180dp"
+    android:background="@drawable/card"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <ImageView
+        android:id="@+id/iv_widget_landmark_image"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/tv_widget_landmark_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="4"
+        android:paddingBottom="4dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:paddingTop="16dp"
+        android:textSize="18sp"
+        tool:text="Eiffel Tower"/>
 
-        <ImageView
-            android:id="@+id/iv_widget_image"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scaleType="centerCrop" />
+    <TextView
+        android:id="@+id/tv_widget_landmark_location"
+        style="@style/TextAppearance.AppCompat.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/ic_place_black_24dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        tool:text="Paris"/>
 
-        <TextView
-            android:id="@+id/tv_widget_name"
-            style="@style/TextAppearance.AppCompat.Subhead"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="16dp"
-            android:paddingTop="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="4dp"
-            android:ellipsize="end"
-            android:maxLines="4" />
-
-        <TextView
-            android:id="@+id/tv_widget_location"
-            style="@style/TextAppearance.AppCompat.Body1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="16dp"
-            android:maxLines="2"
-            android:ellipsize="end" />
-    </LinearLayout>
-
-</android.support.v7.widget.CardView>
+</LinearLayout>

@@ -4,6 +4,8 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
@@ -11,15 +13,16 @@ import android.widget.RemoteViewsService;
 import com.brunogtavares.worldlandmarks.Firebase.FirebaseEntry;
 import com.brunogtavares.worldlandmarks.R;
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by brunogtavares on 11/23/18.
@@ -88,13 +91,28 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
 
     @Override
     public RemoteViews getViewAt(int position) {
-        RemoteViews remoteViews = new RemoteViews(mContext.getPackageName(),
-                R.layout.widget_list_item);
 
         MyLandmark myLandmark = mMyLandmarkList.get(position);
 
-        remoteViews.setTextViewText(R.id.tv_widget_name, myLandmark.getLandmarkName());
-        remoteViews.setTextViewText(R.id.tv_widget_location, myLandmark.getLocation());
+        final RemoteViews remoteViews = new RemoteViews(mContext.getPackageName(),
+                R.layout.widget_list_item);
+
+        try {
+            Bitmap bitmap = Glide.with(mContext)
+                    .asBitmap()
+                    .load(myLandmark.getImageUri())
+                    .submit(100,80)
+                    .get();
+            remoteViews.setImageViewBitmap(R.id.iv_widget_landmark_image, bitmap);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+
+        remoteViews.setTextViewText(R.id.tv_widget_landmark_name, myLandmark.getLandmarkName());
+        remoteViews.setTextViewText(R.id.tv_widget_landmark_location, myLandmark.getLocation());
 
         return remoteViews;
     }

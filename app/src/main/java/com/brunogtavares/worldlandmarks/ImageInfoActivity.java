@@ -177,7 +177,12 @@ public class ImageInfoActivity extends AppCompatActivity
         String description = mWikipediaContent.getText().toString();
 
 
+        // Get a reference with an empty spot so an ID can be retrieved
+        final DatabaseReference newEntry = mUserDb.push();
+        mKey = newEntry.getKey();
+
         final Map imageInfo = new HashMap<String, String>();
+        imageInfo.put(FirebaseEntry.LANDMARK_ID, mKey);
         imageInfo.put(FirebaseEntry.LANDMARK_NAME, landmark);
         imageInfo.put(FirebaseEntry.LOCATION, location);
         imageInfo.put(FirebaseEntry.CONFIDENCE, confidence);
@@ -185,9 +190,6 @@ public class ImageInfoActivity extends AppCompatActivity
         imageInfo.put(FirebaseEntry.LONGITUDE, longitude);
         imageInfo.put(FirebaseEntry.DESCRIPTION, description);
 
-        // Get a reference with an empty spot so an ID can be retrieved
-        final DatabaseReference newEntry = mUserDb.push();
-        mKey = newEntry.getKey();
         newEntry.setValue(imageInfo);
         mFirebaseFileImagePath = BitmapUtils.createFileName();
         final StorageReference newStorageEntry = mFirebaseStorage.child(mFirebaseFileImagePath);

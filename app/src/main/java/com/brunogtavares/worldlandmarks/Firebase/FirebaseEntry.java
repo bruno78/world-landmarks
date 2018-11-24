@@ -10,6 +10,7 @@ public abstract class FirebaseEntry {
 
     public static final String TABLE_MYLANDMARKS = "MyLandmarks";
 
+    public static final String LANDMARK_ID = "id";
     public static final String LANDMARK_NAME = "landmarkName";
     public static final String CONFIDENCE = "confidence";
     public static final String LOCATION = "location";

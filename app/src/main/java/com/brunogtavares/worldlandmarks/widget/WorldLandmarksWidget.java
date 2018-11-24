@@ -1,6 +1,7 @@
 package com.brunogtavares.worldlandmarks.widget;
 
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
@@ -9,6 +10,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
+import com.brunogtavares.worldlandmarks.MainActivity;
+import com.brunogtavares.worldlandmarks.MyLandmarkDetailActivity;
+import com.brunogtavares.worldlandmarks.MyLandmarksActivity;
 import com.brunogtavares.worldlandmarks.R;
 
 /**
@@ -16,20 +20,8 @@ import com.brunogtavares.worldlandmarks.R;
  */
 public class WorldLandmarksWidget extends AppWidgetProvider {
 
-    public static String ACTION_CLICK_URL = "ACTION_CLICK_URL";
-    public static String EXTRA_ITEM_URL = "EXTRA_ITEM_URL";
-
-//    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-//                                int appWidgetId) {
-//
-//        CharSequence widgetText = context.getString(R.string.appwidget_text);
-//        // Construct the RemoteViews object
-//        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.world_landmarks_widget);
-//        views.setTextViewText(R.id.appwidget_text, widgetText);
-//
-//        // Instruct the widget manager to update the widget
-//        appWidgetManager.updateAppWidget(appWidgetId, views);
-//    }
+    public static String ACTION_CLICK = "ACTION_CLICK";
+    public static String EXTRA_ITEM_ID = "EXTRA_ITEM_ID";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -47,29 +39,34 @@ public class WorldLandmarksWidget extends AppWidgetProvider {
     public void update(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
-            // updateAppWidget(context, appWidgetManager, appWidgetId);
 
             RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.world_landmarks_widget);
+
+            // Create an Intent to launch MainActivity when clicked on title
+            Intent titleIntent = new Intent(context, MyLandmarksActivity.class);
+            PendingIntent titlePendingIntent = PendingIntent.getActivity(context, 0, titleIntent, 0);
+            remoteViews.setOnClickPendingIntent(R.id.tv_widget_title, titlePendingIntent);
+
 
             // Setting the ListView intent and adapter
             Intent intent = new Intent(context, WorldLandmarksWidgetService.class);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
             intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-            remoteViews.setEmptyView(R.id.lv_widget_listview, R.id.tv_widget_empty_view);
             remoteViews.setRemoteAdapter(R.id.lv_widget_listview, intent);
+            remoteViews.setEmptyView(R.id.lv_widget_listview, R.id.tv_widget_empty_view);
 
-            // Setting the refresh button intent
-//            Intent refreshIntent = new Intent(context, WorldLandmarksWidget.class);
-//            refreshIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-//            refreshIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-//            PendingIntent refreshPendingIntent = PendingIntent.getBroadcast(context, 0,
-//                    refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-//            remoteViews.setOnClickPendingIntent(// INSERT BUTTON LAYOUT,
-//                    refreshPendingIntent);
+            // Setting the refresh feature on empty text view.
+            Intent refreshIntent = new Intent(context, WorldLandmarksWidget.class);
+            refreshIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            refreshIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            PendingIntent refreshPendingIntent = PendingIntent.getBroadcast(context, 0,
+                    refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            remoteViews.setOnClickPendingIntent(R.id.tv_widget_empty_view,
+                    refreshPendingIntent);
 
             // Setting the click intent on the list items
             Intent clickIntent = new Intent(context, WorldLandmarksWidget.class);
-            clickIntent.setAction(ACTION_CLICK_URL);
+            clickIntent.setAction(ACTION_CLICK);
             clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
             PendingIntent clickPendingIntent = PendingIntent.getBroadcast(context, 0, clickIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
@@ -80,20 +77,5 @@ public class WorldLandmarksWidget extends AppWidgetProvider {
 
         }
     }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(ACTION_CLICK_URL)) {
-            String url = intent.getStringExtra(EXTRA_ITEM_URL);
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(Uri.parse(url));
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(i);
-        } else if (intent.getAction().equals(AppWidgetManager.ACTION_APPWIDGET_UPDATE)) {
-            update(context);
-        }
-        super.onReceive(context, intent);
-    }
-
 }
 
