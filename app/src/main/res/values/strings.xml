@@ -134,4 +134,5 @@
     <string name="mylandmarks">My Landmarks</string>
     <string name="get_landmark">Get Landmark</string>
     <string name="logout">Logout</string>
+    <string name="dialog_logout">Do you wish to log out?</string>
 </resources>

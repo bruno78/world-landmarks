@@ -75,8 +75,6 @@ dependencies {
     // ViewModel and LiveData
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
 
-    // Floating Action Button Speed Dial
-    implementation "com.leinardi.android:speed-dial:2.0.0"
 }
 
 apply plugin: 'com.google.gms.google-services'

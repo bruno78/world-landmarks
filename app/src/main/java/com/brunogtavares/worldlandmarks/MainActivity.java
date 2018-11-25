@@ -530,8 +530,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void signOut() {
-        mAuth.signOut();
-        goToRegistrationActivity();
+        final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        builder.setMessage(R.string.dialog_logout)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mAuth.signOut();
+                        goToRegistrationActivity();
+                    }})
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+        builder.create().show();
     }
 
     private void goToRegistrationActivity() {
