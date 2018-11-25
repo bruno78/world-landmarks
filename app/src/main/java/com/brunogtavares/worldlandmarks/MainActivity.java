@@ -16,6 +16,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -31,6 +33,7 @@ import com.brunogtavares.worldlandmarks.utils.LandmarkUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.cloud.FirebaseVisionCloudDetectorOptions;
 import com.google.firebase.ml.vision.cloud.landmark.FirebaseVisionCloudLandmark;
@@ -73,11 +76,16 @@ public class MainActivity extends AppCompatActivity {
     private Uri mImageUri;
     private Context mContext;
     private MyLandmark mMyLandmark;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mAuth = FirebaseAuth.getInstance();
+
+        if(mAuth.getCurrentUser() == null) goToRegistrationActivity();
 
         // Planting Timber
         if (BuildConfig.DEBUG) Timber.plant(new Timber.DebugTree());
@@ -137,8 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //=================================
-    // Camera Permissions
+    //region Camera Permissions
     //
     private void startCamera() {
         // Check for the external storage permission
@@ -175,14 +182,11 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-
     //
-    // *** End Camera Permissions ***
-    //============================================
+    //endregion
 
 
-    //=================================
-    // Gallery Permissions
+    //region Gallery Permissions
     //
     private void startGalleryChooser() {
         if(ContextCompat.checkSelfPermission(mContext,
@@ -265,15 +269,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     //
-    // *** End Gallery Permissions ***
-    //============================================
+    //endregion
 
 
-    //=================================
-    // Firebase Vision Cloud
-    //
+    //region Firebase Cloud Vision
+
     private void processFileImage(Uri imageUri) {
         FirebaseVisionImage image;
         try {
@@ -318,22 +319,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    //endregion
 
-//    // The bitmap is saved in the app's folder
-//    //  If the saved bitmap is not required use following code
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        if(mCamera != null) mCamera.deleteImage();
-//    }
-    //
-    // *** End Firebase Vision Cloud ***
-    //============================================
 
     //=================================
     // Setting Views
     //
     // TODO: Dummy data to void excessive calls to API. Delete this when is done testing.
+
+    //region Setting Views
+
     private void processDummyData() {
 
         mLoadingLayout.setVisibility(View.INVISIBLE);
@@ -420,13 +415,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    //
-    // *** End Ending Setting Views ***
-    //============================================
+    //endregion
 
-    //=================================
-    // Handling saving state
-    //
+
+    //region Saving States
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -455,13 +448,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-    //
-    // *** End Handling Saving State ***
-    //============================================
 
-    //=================================
-    // Managing Views
-    //
+    //endregion
+
+
+    //region Displays
+
     private void displayImage() {
         mImage.setVisibility(View.VISIBLE);
         mGetImageButton.setVisibility(View.GONE);
@@ -502,12 +494,50 @@ public class MainActivity extends AppCompatActivity {
         mResultInfo.setVisibility(View.VISIBLE);
     }
 
+    // TODO: Delete this
     public void golistActivity(View view) {
         Intent intent = new Intent(this, MyLandmarksActivity.class);
         startActivity(intent);
     }
-    //
-    // *** End Managing Views ***
-    //============================================
+
+    //endregion
+
+    // Creates the menu
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    // Menu
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch(item.getItemId()) {
+            case R.id.action_get_landmark:
+                // Don't do anything;
+                return true;
+            case R.id.action_my_landmarks:
+                Intent goToLandmarksIntent = new Intent(this, MyLandmarksActivity.class);
+                startActivity(goToLandmarksIntent);
+                return true;
+            case R.id.action_logout:
+                signOut();
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void signOut() {
+        mAuth.signOut();
+        goToRegistrationActivity();
+    }
+
+    private void goToRegistrationActivity() {
+        Intent registrationIntent = new Intent(this, EmailPasswordActivity.class);
+        startActivity(registrationIntent);
+        finish();
+    }
 
 }

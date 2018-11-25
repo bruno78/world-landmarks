@@ -131,4 +131,7 @@
     <string name="dialog_delete_my_landmark">Do you wish to delete this landmark?</string>
     <string name="yes">yes</string>
     <string name="cancel">Cancel</string>
+    <string name="mylandmarks">My Landmarks</string>
+    <string name="get_landmark">Get Landmark</string>
+    <string name="logout">Logout</string>
 </resources>

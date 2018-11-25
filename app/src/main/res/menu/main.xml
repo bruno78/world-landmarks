@@ -1,0 +1,23 @@
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.brunogtavares.popmovies.MovieDetailActivity">
+    <item
+        android:id="@+id/action_my_landmarks"
+        android:orderInCategory="1"
+        android:title="@string/mylandmarks"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_get_landmark"
+        android:orderInCategory="2"
+        android:title="@string/get_landmark"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_logout"
+        android:orderInCategory="3"
+        android:title="@string/logout"
+        app:showAsAction="never"/>
+</menu>

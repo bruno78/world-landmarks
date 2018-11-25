@@ -13,6 +13,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -50,6 +52,7 @@ public class MyLandmarkDetailActivity extends AppCompatActivity {
     String mUserId;
     DatabaseReference mUserDb;
     StorageReference mImageStorage;
+    FirebaseAuth mAuth;
 
 
     @Override
@@ -59,11 +62,15 @@ public class MyLandmarkDetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mAuth = FirebaseAuth.getInstance();
+
+        if(mAuth.getCurrentUser() == null) goToRegistrationActivity();
+
         ButterKnife.bind(this);
 
         displayLoading();
 
-        mUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mUserId = mAuth.getCurrentUser().getUid();
         mUserDb = FirebaseDatabase.getInstance().getReference()
                 .child(FirebaseEntry.TABLE_USERS).child(mUserId)
                 .child(FirebaseEntry.TABLE_MYLANDMARKS);
@@ -152,5 +159,44 @@ public class MyLandmarkDetailActivity extends AppCompatActivity {
         int ids[] = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), WorldLandmarksWidget.class));
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
         sendBroadcast(intent);
+    }
+
+    // Creates the menu
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    // Menu
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch(item.getItemId()) {
+            case R.id.action_get_landmark:
+                Intent goToMainActivityIntent = new Intent(this, MainActivity.class);
+                startActivity(goToMainActivityIntent);
+                return true;
+            case R.id.action_my_landmarks:
+                Intent goToLandmarksIntent = new Intent(this, MyLandmarksActivity.class);
+                startActivity(goToLandmarksIntent);
+                return true;
+            case R.id.action_logout:
+                signOut();
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void signOut() {
+        mAuth.signOut();
+        goToRegistrationActivity();
+    }
+
+    private void goToRegistrationActivity() {
+        Intent registrationIntent = new Intent(this, EmailPasswordActivity.class);
+        startActivity(registrationIntent);
+        finish();
     }
 }

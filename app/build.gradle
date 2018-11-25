@@ -67,9 +67,6 @@ dependencies {
     // Timber
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
-    // ParaCamera
-    // implementation 'com.mindorks:paracamera:0.2.2'
-
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
@@ -77,6 +74,9 @@ dependencies {
 
     // ViewModel and LiveData
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
+
+    // Floating Action Button Speed Dial
+    implementation "com.leinardi.android:speed-dial:2.0.0"
 }
 
 apply plugin: 'com.google.gms.google-services'

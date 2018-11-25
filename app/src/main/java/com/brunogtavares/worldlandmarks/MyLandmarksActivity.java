@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -45,11 +47,16 @@ public class MyLandmarksActivity extends AppCompatActivity implements
     private String mUserId;
     private Query mQuery;
     private ValueEventListener mMyLandmarkListener;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_landmarks);
+
+        mAuth = FirebaseAuth.getInstance();
+
+        if(mAuth.getCurrentUser() == null) goToRegistrationActivity();
 
         ButterKnife.bind(this);
 
@@ -112,5 +119,44 @@ public class MyLandmarksActivity extends AppCompatActivity implements
         bundle.putParcelable(MY_LANDMARK_KEY, myLandmark);
         intent.putExtras(bundle);
         startActivity(intent);
+    }
+
+
+    // Creates the menu
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    // Menu
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch(item.getItemId()) {
+            case R.id.action_get_landmark:
+                Intent goToMainActivityIntent = new Intent(this, MainActivity.class);
+                startActivity(goToMainActivityIntent);
+                return true;
+            case R.id.action_my_landmarks:
+                // Do nothing
+                return true;
+            case R.id.action_logout:
+                signOut();
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void signOut() {
+        mAuth.signOut();
+        goToRegistrationActivity();
+    }
+
+    private void goToRegistrationActivity() {
+        Intent registrationIntent = new Intent(this, EmailPasswordActivity.class);
+        startActivity(registrationIntent);
+        finish();
     }
 }
