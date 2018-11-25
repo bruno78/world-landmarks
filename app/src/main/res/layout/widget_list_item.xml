@@ -13,6 +13,7 @@
         android:id="@+id/iv_widget_landmark_image"
         android:layout_width="match_parent"
         android:layout_height="@dimen/image_height"
+        android:contentDescription="@string/landmark_image"
         android:scaleType="centerCrop" />
 
     <TextView
