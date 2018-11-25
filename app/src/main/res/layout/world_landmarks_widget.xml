@@ -4,12 +4,12 @@
     android:layout_height="match_parent"
     android:background="@color/grey_500"
     android:orientation="vertical"
-    android:padding="@dimen/widget_margin">
+    android:padding="@dimen/small_margin">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:padding="2dp"
+        android:layout_height="@dimen/bar_height"
+        android:padding="@dimen/widget_padding"
         android:background="@color/colorPrimary">
 
         <TextView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -19,10 +19,10 @@
             android:layout_height="match_parent"
             android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
+            android:paddingStart="@dimen/small_padding"
+            android:paddingEnd="@dimen/small_padding"
             android:gravity="center_vertical"
-            android:textSize="16sp"
+            android:textSize="@dimen/title_size2"
             android:text="@string/app_name" />
     </LinearLayout>
 
@@ -42,10 +42,10 @@
             android:id="@+id/tv_widget_empty_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="16dp"
+            android:layout_margin="@dimen/standard_margin"
             android:gravity="center"
-            android:text="No Landmarks yet!"
-            android:textSize="16sp"
+            android:text="@string/no_landmarks"
+            android:textSize="@dimen/title_size2"
             android:textStyle="bold"
             />
 
