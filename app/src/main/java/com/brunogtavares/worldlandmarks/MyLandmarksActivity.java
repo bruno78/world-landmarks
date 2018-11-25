@@ -15,10 +15,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.baoyz.widget.PullRefreshLayout;
 import com.brunogtavares.worldlandmarks.Firebase.FirebaseEntry;
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
+import com.brunogtavares.worldlandmarks.utils.NetworkUtils;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -44,6 +48,9 @@ public class MyLandmarksActivity extends AppCompatActivity implements
         MyLandmarksAdapter.MyLandmarksAdapterOnClickHandler {
 
     @BindView(R.id.rv_mylandmark_list) RecyclerView mRecyclerView;
+    @BindView(R.id.ll_mylandmarks_loading) LinearLayout mLoadingLayout;
+    @BindView(R.id.tv_mylandmarks_no_connection) TextView mNoConnectionTextView;
+    @BindView(R.id.prl_refresh_layout) PullRefreshLayout mPullRefreshLayout;
 
     private MyLandmarksAdapter mAdapter;
     private String mUserId;
@@ -69,8 +76,25 @@ public class MyLandmarksActivity extends AppCompatActivity implements
         mAdapter.setContext(getApplicationContext());
         mRecyclerView.setAdapter(mAdapter);
 
-        setViews();
+        mPullRefreshLayout.setOnRefreshListener(new PullRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                setViews();
+            }
+        });
 
+        // Check for network connection
+        boolean isConnected = NetworkUtils.checkForNetworkStatus(this);
+        if(isConnected) {
+            mNoConnectionTextView.setVisibility(View.GONE);
+            setViews();
+        }
+        else {
+            Toast.makeText(this, R.string.check_connection, Toast.LENGTH_SHORT).show();
+            mLoadingLayout.setVisibility(View.GONE);
+            mNoConnectionTextView.setVisibility(View.VISIBLE);
+            mPullRefreshLayout.setRefreshing(false);
+        }
     }
 
     @Override
@@ -81,7 +105,8 @@ public class MyLandmarksActivity extends AppCompatActivity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mQuery.removeEventListener(mMyLandmarkListener);
+        if (mQuery != null)
+            mQuery.removeEventListener(mMyLandmarkListener);
     }
 
     private void setViews() {
@@ -101,8 +126,9 @@ public class MyLandmarksActivity extends AppCompatActivity implements
                     }
                     mAdapter.setMyLandmarks(landmarkList);
                     mAdapter.notifyDataSetChanged();
-                    findViewById(R.id.tv_mylandmarks_loading).setVisibility(View.GONE);
-                    findViewById(R.id.pb_loading_list).setVisibility(View.GONE);
+                    mLoadingLayout.setVisibility(View.GONE);
+                    mPullRefreshLayout.setRefreshing(false);
+                    mNoConnectionTextView.setVisibility(View.GONE);
                 }
 
                 @Override

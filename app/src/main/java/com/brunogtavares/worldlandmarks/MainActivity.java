@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.brunogtavares.worldlandmarks.utils.BitmapUtils;
+import com.brunogtavares.worldlandmarks.utils.NetworkUtils;
 import com.brunogtavares.worldlandmarks.utils.PermissionUtils;
 import com.brunogtavares.worldlandmarks.utils.LandmarkUtils;
 import com.bumptech.glide.Glide;
@@ -107,6 +108,16 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             displayInitialState();
+        }
+
+        // Check for network connection
+        boolean isConnected = NetworkUtils.checkForNetworkStatus(this);
+        if(isConnected) {
+            mGetImageButton.setEnabled(isConnected);
+        }
+        else {
+            mGetImageButton.setEnabled(isConnected);
+            Toast.makeText(this, R.string.check_connection, Toast.LENGTH_SHORT).show();
         }
 
         mGetImageButton.setOnClickListener(new View.OnClickListener() {

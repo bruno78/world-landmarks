@@ -64,16 +64,16 @@ dependencies {
     implementation 'com.jakewharton:butterknife:9.0.0-rc1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-rc1'
 
-    // Timber
-    implementation 'com.jakewharton.timber:timber:4.7.1'
-
-    // Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    // Gson
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
     implementation 'com.google.code.gson:gson:2.8.5'
 
-    // ViewModel and LiveData
-    implementation "android.arch.lifecycle:extensions:$lifecycle_version"
+    // Timber
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+
+    // Pull to refresh
+    implementation 'com.baoyz.pullrefreshlayout:library:1.2.0'
+
 
 }
 

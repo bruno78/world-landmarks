@@ -25,6 +25,7 @@ import com.brunogtavares.worldlandmarks.Firebase.FirebaseEntry;
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.brunogtavares.worldlandmarks.model.WikiEntry;
 import com.brunogtavares.worldlandmarks.utils.BitmapUtils;
+import com.brunogtavares.worldlandmarks.utils.NetworkUtils;
 import com.brunogtavares.worldlandmarks.widget.WorldLandmarksWidget;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Continuation;
@@ -108,7 +109,16 @@ public class ImageInfoActivity extends AppCompatActivity
             }
             mLandmarkName = mMyLandmark.getLandmarkName();
 
-            loadViews();
+            boolean isConnected = NetworkUtils.checkForNetworkStatus(this);
+            if(isConnected) {
+                loadViews();
+            }
+            else {
+                Toast.makeText(this, R.string.check_connection, Toast.LENGTH_SHORT).show();
+                Intent backToMainActivityIntent = new Intent(this, MainActivity.class);
+                startActivity(backToMainActivityIntent);
+            }
+
         }
 
         mAuth = FirebaseAuth.getInstance();
@@ -159,7 +169,6 @@ public class ImageInfoActivity extends AppCompatActivity
         mLocationInfo.setText(mMyLandmark.getLocation());
         displayLoading();
         getLoaderManager().initLoader(WIKIENTRY_LOADER_ID, null, this);
-
     }
 
     @Override

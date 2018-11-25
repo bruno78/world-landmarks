@@ -104,7 +104,8 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
 
     @Override
     public void onDestroy() {
-        mQuery.removeEventListener(mWorldLandmarkListener);
+        if (mQuery != null)
+            mQuery.removeEventListener(mWorldLandmarkListener);
     }
 
     @Override
