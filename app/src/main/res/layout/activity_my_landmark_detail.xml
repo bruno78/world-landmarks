@@ -58,6 +58,6 @@
         android:layout_margin="@dimen/fab_margin"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|end"
-        android:src="@drawable/ic_add_icon" />
+        android:src="@drawable/ic_bookmark_border_24dp" />
 
 </android.support.design.widget.CoordinatorLayout>

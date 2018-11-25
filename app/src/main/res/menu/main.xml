@@ -7,14 +7,12 @@
         android:id="@+id/action_my_landmarks"
         android:orderInCategory="1"
         android:title="@string/mylandmarks"
-        app:showAsAction="never"/>
-
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_get_landmark"
         android:orderInCategory="2"
         android:title="@string/get_landmark"
         app:showAsAction="never"/>
-
     <item
         android:id="@+id/action_logout"
         android:orderInCategory="3"

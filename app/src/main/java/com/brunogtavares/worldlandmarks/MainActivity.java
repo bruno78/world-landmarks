@@ -234,7 +234,6 @@ public class MainActivity extends AppCompatActivity {
                         grantResults[2] == PackageManager.PERMISSION_GRANTED) {
 
                     // If you get permission, launch the camera
-                    // launchCamera(mCamera);
                     openCameraIntent();
                 }
                 else if (grantResults.length > 0 &&
@@ -265,8 +264,10 @@ public class MainActivity extends AppCompatActivity {
             if(mImageUri != null) {
                 displayImage();
                 Glide.with(this).load(mImageUri).into(mImage);
-                // processFileImage(mImageUri);
-                processDummyData();
+                processFileImage(mImageUri);
+
+                // Uncomment this for testing ONLY:
+                // processDummyData();
             }
         }
         else if (resultCode == Activity.RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
@@ -275,8 +276,10 @@ public class MainActivity extends AppCompatActivity {
             if(mImageUri != null) {
                 displayImage();
                 Glide.with(this).load(mImageUri).into(mImage);
-                // processFileImage(mImageUri);
-                processDummyData();
+                processFileImage(mImageUri);
+
+                // Uncomment thjs for testing ony
+                // processDummyData();
             }
         }
     }
@@ -333,13 +336,8 @@ public class MainActivity extends AppCompatActivity {
     //endregion
 
 
-    //=================================
-    // Setting Views
-    //
-    // TODO: Dummy data to void excessive calls to API. Delete this when is done testing.
-
     //region Setting Views
-
+    // Use this method for test ONLY to avoid excessive calls to Google Cloud
     private void processDummyData() {
 
         mLoadingLayout.setVisibility(View.INVISIBLE);
@@ -453,8 +451,9 @@ public class MainActivity extends AppCompatActivity {
             displayImage();
         }
         if(mMyLandmark != null) {
-            // setViews(mMyLandmark); // TODO delete this
-            processDummyData();
+            setViews(mMyLandmark);
+            // Uncomment process dummy data for testing ONLY
+            // processDummyData();
             displayInfo();
         }
 
@@ -503,12 +502,6 @@ public class MainActivity extends AppCompatActivity {
     private void displayInfo() {
         mLoadingLayout.setVisibility(View.GONE);
         mResultInfo.setVisibility(View.VISIBLE);
-    }
-
-    // TODO: Delete this
-    public void golistActivity(View view) {
-        Intent intent = new Intent(this, MyLandmarksActivity.class);
-        startActivity(intent);
     }
 
     //endregion

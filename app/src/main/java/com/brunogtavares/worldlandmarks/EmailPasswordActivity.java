@@ -30,11 +30,9 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
     @BindView(R.id.et_fieldEmail) EditText mEmailField;
     @BindView(R.id.et_fieldPassword) EditText mPasswordField;
 
-    @BindView(R.id.bt_verifyEmailButton) Button mVerifyEmailButton;
 
     @BindView(R.id.ll_emailPasswordButtons) LinearLayout mEmailPasswordButtons;
     @BindView(R.id.ll_emailPasswordFields) LinearLayout mEmailPasswordFields;
-    @BindView(R.id.ll_signedInButtons) LinearLayout mSignedInButtons;
 
     private FirebaseAuth mAuth;
 
@@ -51,8 +49,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
         // Buttons
         findViewById(R.id.bt_emailSignInButton).setOnClickListener(this);
         findViewById(R.id.bt_emailCreateAccountButton).setOnClickListener(this);
-        findViewById(R.id.bt_signOutButton).setOnClickListener(this);
-        mVerifyEmailButton.setOnClickListener(this);
+
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
@@ -66,7 +63,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
 
         // Check if user is signed in (non-null) and update UI accordingly
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        updateUI(currentUser);
     }
 
     private void createAccount(String email, String password) {
@@ -92,7 +88,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
                             Timber.w( "createUserWithEmail:failure", task.getException());
                             Toast.makeText(EmailPasswordActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-                            updateUI(null);
                         }
                         hideProgressDialog();
                     }
@@ -130,32 +125,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
             createAccount(mEmailField.getText().toString(), mPasswordField.getText().toString());
         } else if (i == R.id.bt_emailSignInButton) {
             signIn(mEmailField.getText().toString(), mPasswordField.getText().toString());
-        } else if (i == R.id.bt_signOutButton) {
-            signOut();
-        } else if (i == R.id.bt_verifyEmailButton) {
-            sendEmailVerification();
-        }
-    }
-
-    private void updateUI(FirebaseUser user) {
-
-        hideProgressDialog();
-
-        if(user != null) {
-            mStatusTextView.setText(getString(R.string.emailpassword_status_fmt,
-                    user.getEmail(), user.isEmailVerified()));
-            mEmailPasswordButtons.setVisibility(View.GONE);
-            mEmailPasswordFields.setVisibility(View.GONE);
-            mSignedInButtons.setVisibility(View.VISIBLE);
-
-            mVerifyEmailButton.setEnabled(!user.isEmailVerified());
-        } else {
-            mStatusTextView.setText(R.string.signed_out);
-            mDetailTextView.setText(null);
-
-            mEmailPasswordButtons.setVisibility(View.VISIBLE);
-            mEmailPasswordFields.setVisibility(View.VISIBLE);
-            mSignedInButtons.setVisibility(View.GONE);
         }
     }
 
@@ -182,7 +151,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
                             Timber.d("signInWithEmail:failure", task.getException());
                             Toast.makeText(EmailPasswordActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-                            updateUI(null);
                         }
 
                         if (!task.isSuccessful()) {
@@ -201,40 +169,9 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
 
     private void signOut() {
         mAuth.signOut();
-        updateUI(null);
-    }
-
-    private void sendEmailVerification() {
-        // Disable button
-        mVerifyEmailButton.setEnabled(false);
-
-        // Send verification email
-        final FirebaseUser user = mAuth.getCurrentUser();
-        user.sendEmailVerification()
-                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-
-                        // Re-enable button
-                        mVerifyEmailButton.setEnabled(true);
-
-                        if (task.isSuccessful()) {
-                            Toast.makeText(EmailPasswordActivity.this,
-                                    "Verification email sent to " + user.getEmail(),
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            Timber.e("sendEmailVerification", task.getException());
-                            Toast.makeText(EmailPasswordActivity.this,
-                                    "Failed to send verification email.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
     }
 
     public void showProgressDialog() {
-        // TODO Improve Progress bar!
-        // TODO Check for rotation!
         if (mProgressBar == null) {
             mProgressBar = new ProgressBar(this);
             mProgressBar.setIndeterminate(true);

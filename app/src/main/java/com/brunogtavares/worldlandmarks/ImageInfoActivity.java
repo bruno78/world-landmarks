@@ -244,12 +244,6 @@ public class ImageInfoActivity extends AppCompatActivity
             }
         });
 
-        // TODO: Fix fab on MyLandmark detail activity
-        // TODO: Check for hard coded strings
-        // TODO: LTR Layout
-        // TODO: Refactor code!
-        // TODO: Check for connection
-
     }
 
     private void goToMyLandmarksActivity() {
