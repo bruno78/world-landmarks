@@ -12,6 +12,7 @@ import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import com.brunogtavares.worldlandmarks.Firebase.FirebaseEntry;
+import com.brunogtavares.worldlandmarks.MyLandmarkDetailActivity;
 import com.brunogtavares.worldlandmarks.R;
 import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.bumptech.glide.Glide;
@@ -22,6 +23,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -29,6 +31,8 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import static com.brunogtavares.worldlandmarks.MyLandmarkDetailActivity.MY_LANDMARK_KEY;
 
 /**
  * Created by brunogtavares on 11/23/18.
@@ -40,6 +44,8 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
     private int mAppWidgetId;
     private List<MyLandmark> mMyLandmarkList;
     private StorageReference mStorageReference;
+    private ValueEventListener mWorldLandmarkListener;
+    private Query mQuery;
     private String mUserId;
 
     public WorldLandmarksViewsFactory(Context context, Intent intent) {
@@ -50,36 +56,45 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
 
     @Override
     public void onCreate() {
-        mMyLandmarkList = new ArrayList<>();
-        mUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        mStorageReference = FirebaseStorage.getInstance().getReference().child(mUserId);
-        getList();
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+
+        if(firebaseAuth.getCurrentUser() != null) {
+            mMyLandmarkList = new ArrayList<>();
+            mUserId = firebaseAuth.getCurrentUser().getUid();
+            mStorageReference = FirebaseStorage.getInstance().getReference().child(mUserId);
+
+            getList();
+        }
+
     }
 
     private void getList() {
-        FirebaseDatabase.getInstance().getReference()
+
+        // Getting the query
+        mQuery = FirebaseDatabase.getInstance().getReference()
                 .child(FirebaseEntry.TABLE_USERS)
                 .child(mUserId)
                 .child(FirebaseEntry.TABLE_MYLANDMARKS)
-                .limitToLast(3)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for (DataSnapshot child : dataSnapshot.getChildren()) {
-                            mMyLandmarkList.add(0, child.getValue(MyLandmark.class));
-                        }
+                .limitToLast(3);
 
-                        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
-                        int appWigetIds[] = appWidgetManager
-                                .getAppWidgetIds(new ComponentName(mContext, WorldLandmarksWidget.class));
-                        appWidgetManager.notifyAppWidgetViewDataChanged(appWigetIds, R.id.lv_widget_listview);
-                    }
+        // Setting up the listener
+        mWorldLandmarkListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                mMyLandmarkList.clear();
+                for (DataSnapshot child : dataSnapshot.getChildren()) {
+                    mMyLandmarkList.add(child.getValue(MyLandmark.class));
+                }
+                AppWidgetManager.getInstance(mContext)
+                        .notifyAppWidgetViewDataChanged(mAppWidgetId, R.id.lv_widget_listview);
+            }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                    }
-                });
+            }
+        };
+        mQuery.addValueEventListener(mWorldLandmarkListener);
     }
 
     @Override
@@ -89,7 +104,7 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
 
     @Override
     public void onDestroy() {
-
+        mQuery.removeEventListener(mWorldLandmarkListener);
     }
 
     @Override
@@ -119,6 +134,10 @@ public class WorldLandmarksViewsFactory implements RemoteViewsService.RemoteView
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+
+        Intent intent = new Intent(mContext, MyLandmarkDetailActivity.class);
+        intent.putExtra(MY_LANDMARK_KEY, myLandmark);
+        remoteViews.setOnClickFillInIntent(R.id.ll_widget_list_item, intent);
 
         remoteViews.setTextViewText(R.id.tv_widget_landmark_name, myLandmark.getLandmarkName());
         remoteViews.setTextViewText(R.id.tv_widget_landmark_location, myLandmark.getLocation());

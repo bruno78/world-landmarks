@@ -131,7 +131,6 @@ public class MyLandmarkDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Void aVoid) {
                 Toast.makeText(MyLandmarkDetailActivity.this, "Successfully deleted from database!", Toast.LENGTH_SHORT).show();
-                updateWidget();
                 goToMyLandmarksActivity();
             }
         });
@@ -151,14 +150,6 @@ public class MyLandmarkDetailActivity extends AppCompatActivity {
     private void displayLoading() {
         mLoadingScreen.setVisibility(View.VISIBLE);
         mInfo.setVisibility(View.GONE);
-    }
-
-    private void updateWidget() {
-        Intent intent = new Intent(this, WorldLandmarksWidget.class);
-        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-        int ids[] = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), WorldLandmarksWidget.class));
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
-        sendBroadcast(intent);
     }
 
     // Creates the menu

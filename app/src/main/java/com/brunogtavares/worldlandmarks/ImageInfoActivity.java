@@ -227,7 +227,6 @@ public class ImageInfoActivity extends AppCompatActivity
 
                     Toast.makeText(ImageInfoActivity.this, "Message Saved Sucessfully!", Toast.LENGTH_SHORT).show();
 
-                    updateWidget();
                     goToMyLandmarksActivity();
                 }
                 else {
@@ -278,14 +277,6 @@ public class ImageInfoActivity extends AppCompatActivity
         super.onSaveInstanceState(outState);
 
         outState.putString(DB_ENTRY_KEY, mKey);
-    }
-
-    private void updateWidget() {
-        Intent intent = new Intent(this, WorldLandmarksWidget.class);
-        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-        int ids[] = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), WorldLandmarksWidget.class));
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
-        sendBroadcast(intent);
     }
 
 
