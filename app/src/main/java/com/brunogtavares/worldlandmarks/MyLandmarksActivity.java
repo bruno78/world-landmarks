@@ -20,27 +20,31 @@ import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.brunogtavares.worldlandmarks.MyLandmarkDetailActivity.MY_LANDMARK_KEY;
 
-public class MyLandmarksActivity extends AppCompatActivity {
+public class MyLandmarksActivity extends AppCompatActivity implements
+        MyLandmarksAdapter.MyLandmarksAdapterOnClickHandler {
 
     @BindView(R.id.rv_mylandmark_list) RecyclerView mRecyclerView;
 
-    // TODO Test the recycler view.
-    // Make sure each item is clickable
-
-    FirebaseRecyclerAdapter mAdapter;
-    MyLandmark mMyLandmark;
-
-    String mUserId;
+    private MyLandmarksAdapter mAdapter;
+    private String mUserId;
+    private Query mQuery;
+    private ValueEventListener mMyLandmarkListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +56,9 @@ public class MyLandmarksActivity extends AppCompatActivity {
         mUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        mAdapter = new MyLandmarksAdapter(this);
+        mAdapter.setContext(getApplicationContext());
+        mRecyclerView.setAdapter(mAdapter);
 
         setViews();
 
@@ -60,88 +67,50 @@ public class MyLandmarksActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
-        mAdapter.startListening();
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
-        mAdapter.stopListening();
+    protected void onDestroy() {
+        super.onDestroy();
+        mQuery.removeEventListener(mMyLandmarkListener);
     }
 
     private void setViews() {
 
-        Query query = FirebaseDatabase.getInstance().getReference()
+        mQuery = FirebaseDatabase.getInstance().getReference()
                 .child(FirebaseEntry.TABLE_USERS)
                 .child(mUserId)
                 .child(FirebaseEntry.TABLE_MYLANDMARKS);
 
-        FirebaseRecyclerOptions<MyLandmark> options =
-                new FirebaseRecyclerOptions.Builder<MyLandmark>()
-                        .setQuery(query, MyLandmark.class)
-                        .build();
+        if (mUserId != null) {
+            mMyLandmarkListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    List<MyLandmark> landmarkList = new ArrayList<>();
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        landmarkList.add(child.getValue(MyLandmark.class));
+                    }
+                    mAdapter.setMyLandmarks(landmarkList);
+                    mAdapter.notifyDataSetChanged();
+                    findViewById(R.id.tv_mylandmarks_loading).setVisibility(View.GONE);
+                    findViewById(R.id.pb_loading_list).setVisibility(View.GONE);
+                }
 
-       mAdapter = new FirebaseRecyclerAdapter<MyLandmark, MyLandmarkHolder>(options) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-           @NonNull
-           @Override
-           public MyLandmarkHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-
-               View view = LayoutInflater.from(viewGroup.getContext())
-                       .inflate(R.layout.mylandmark_list_item, viewGroup, false);
-
-               return new MyLandmarkHolder(view);
-           }
-
-           @Override
-           protected void onBindViewHolder(@NonNull final MyLandmarkHolder holder, int position, @NonNull MyLandmark model) {
-               mMyLandmark = model;
-
-               String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-               StorageReference storageReference = FirebaseStorage.getInstance().getReference().child(userId);
-               storageReference.child(mMyLandmark.getImageUri()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                   @Override
-                   public void onSuccess(Uri uri) {
-                       Glide.with(MyLandmarksActivity.this).load(uri)
-                               .into(holder.mThumbnailView);
-                   }
-               });
-
-               holder.mMyLandmarkName.setText(mMyLandmark.getLandmarkName());
-               holder.mMyLandmarkLocation.setText(mMyLandmark.getLocation());
-           }
-       };
-        findViewById(R.id.pb_loading_list).setVisibility(View.GONE);
-        findViewById(R.id.tv_mylandmarks_loading).setVisibility(View.GONE);
-
-        mRecyclerView.setAdapter(mAdapter);
+                }
+            };
+            mQuery.addValueEventListener(mMyLandmarkListener);
+        }
     }
 
-
-    public class MyLandmarkHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        @BindView(R.id.iv_mylandmark_thumbnail)ImageView mThumbnailView;
-        @BindView(R.id.tv_mylandmark_name) TextView mMyLandmarkName;
-        @BindView(R.id.tv_mylandmark_location) TextView mMyLandmarkLocation;
-
-        public MyLandmarkHolder(@NonNull View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
-
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Intent intent = new Intent(getApplicationContext(), MyLandmarkDetailActivity.class);
-
-            Bundle bundle = new Bundle();
-            bundle.putParcelable(MY_LANDMARK_KEY, mMyLandmark);
-            intent.putExtras(bundle);
-            startActivity(intent);
-
-        }
+    @Override
+    public void onClick(MyLandmark myLandmark) {
+        Intent intent = new Intent(getApplicationContext(), MyLandmarkDetailActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(MY_LANDMARK_KEY, myLandmark);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 }
