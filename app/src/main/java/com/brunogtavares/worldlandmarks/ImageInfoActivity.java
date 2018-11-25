@@ -235,11 +235,11 @@ public class ImageInfoActivity extends AppCompatActivity
             }
         });
 
-        // TODO: Verify if user is logged in before display widget
-        // TODO: Implment menu navigation including logout
         // TODO: Fix fab on MyLandmark detail activity
-        // TODO: Add loading layout on MyLandmarks
-
+        // TODO: Check for hard coded strings
+        // TODO: LTR Layout
+        // TODO: Refactor code!
+        // TODO: Check for connection
 
     }
 
