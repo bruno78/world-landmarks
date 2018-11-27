@@ -6,7 +6,7 @@ android {
             keyAlias 'worldLandmark'
             keyPassword 'kramdnaldlrow'
             storeFile file('worldLandmarkDebug')
-            storePassword 'firebraseProd'
+            storePassword 'firebaseProd'
         }
     }
     compileSdkVersion 28
@@ -62,7 +62,7 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
     // ButterKnife
     implementation 'com.jakewharton:butterknife:9.0.0-rc1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-rc1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     // Gson
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
     implementation 'com.google.code.gson:gson:2.8.5'
