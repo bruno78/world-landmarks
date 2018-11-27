@@ -130,7 +130,7 @@ public class MyLandmarkDetailActivity extends AppCompatActivity {
         mImageStorage.child(mMyLandmark.getImageUri()).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                Toast.makeText(MyLandmarkDetailActivity.this, "Successfully deleted from database!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MyLandmarkDetailActivity.this, R.string.database_delete_success, Toast.LENGTH_SHORT).show();
                 goToMyLandmarksActivity();
             }
         });

@@ -86,7 +86,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
                         } else {
                             // If sign in fails, display a message to the user.
                             Timber.w( "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(EmailPasswordActivity.this, "Authentication failed.",
+                            Toast.makeText(EmailPasswordActivity.this, R.string.auth_failed,
                                     Toast.LENGTH_SHORT).show();
                         }
                         hideProgressDialog();
@@ -149,7 +149,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements View.OnC
                         } else {
                             // If sign in fails, display a message to the user.
                             Timber.d("signInWithEmail:failure", task.getException());
-                            Toast.makeText(EmailPasswordActivity.this, "Authentication failed.",
+                            Toast.makeText(EmailPasswordActivity.this, R.string.auth_failed,
                                     Toast.LENGTH_SHORT).show();
                         }
 

@@ -144,4 +144,6 @@
     <string name="unbookmark">Unbookmark floating button</string>
     <string name="save_landmark">Save Landmark Floating Button</string>
     <string name="scrim_over_image">Scrim over image</string>
+    <string name="database_delete_success">Successfully deleted from database!</string>
+    <string name="select_photo_dialog">Select a photo</string>
 </resources>

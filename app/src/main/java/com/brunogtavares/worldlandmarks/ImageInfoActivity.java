@@ -262,7 +262,7 @@ public class ImageInfoActivity extends AppCompatActivity {
             mFirebaseStorage.child(mFirebaseFileImagePath).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
-                    Toast.makeText(ImageInfoActivity.this, "Successfully deleted from database!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ImageInfoActivity.this, R.string.database_delete_success, Toast.LENGTH_SHORT).show();
                     mKey = null;
                 }
             });

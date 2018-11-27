@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
     private void openGalleryIntent() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
-        startActivityForResult(Intent.createChooser(intent, "Select a photo"),
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.select_photo_dialog)),
                 PERMISSION_REQUEST_CODE);
     }
 
@@ -368,7 +368,6 @@ public class MainActivity extends AppCompatActivity {
         mResultInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(com.brunogtavares.worldlandmarks.MainActivity.this, "Take me to image info...", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(com.brunogtavares.worldlandmarks.MainActivity.this, ImageInfoActivity.class);
                 intent.putExtra(ImageInfoActivity.LANDMARK_BUNDLE_KEY, mMyLandmark);
 
