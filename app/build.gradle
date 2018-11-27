@@ -4,8 +4,8 @@ android {
     signingConfigs {
         config {
             keyAlias 'worldLandmark'
-            keyPassword 'kramdnaldlrow'
-            storeFile file('worldLandmarkDebug')
+            keyPassword 'firebaseProd'
+            storeFile file('/WorldLandmarks/app/worldLandmarkDebug')
             storePassword 'firebaseProd'
         }
     }
