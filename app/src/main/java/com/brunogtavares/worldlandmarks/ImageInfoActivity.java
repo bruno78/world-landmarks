@@ -1,16 +1,15 @@
 package com.brunogtavares.worldlandmarks;
 
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
+import android.app.ActivityOptions;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.app.LoaderManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -26,7 +25,7 @@ import com.brunogtavares.worldlandmarks.model.MyLandmark;
 import com.brunogtavares.worldlandmarks.model.WikiEntry;
 import com.brunogtavares.worldlandmarks.utils.BitmapUtils;
 import com.brunogtavares.worldlandmarks.utils.NetworkUtils;
-import com.brunogtavares.worldlandmarks.widget.WorldLandmarksWidget;
+import com.brunogtavares.worldlandmarks.utils.WikipediaAPIUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -39,6 +38,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,11 +46,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
-public class ImageInfoActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<WikiEntry> {
+public class ImageInfoActivity extends AppCompatActivity {
 
     public static final String LANDMARK_BUNDLE_KEY = "LANDMARK_BUNDLE_KEY";
-    private static final int WIKIENTRY_LOADER_ID = 1;
+    // private static final int WIKIENTRY_LOADER_ID = 1;
     private static final String DB_ENTRY_KEY = "DB_ENTRY_KEY";
 
     @BindView(R.id.app_bar) AppBarLayout mAppBar;
@@ -115,8 +114,9 @@ public class ImageInfoActivity extends AppCompatActivity
             }
             else {
                 Toast.makeText(this, R.string.check_connection, Toast.LENGTH_SHORT).show();
-                Intent backToMainActivityIntent = new Intent(this, MainActivity.class);
-                startActivity(backToMainActivityIntent);
+                Intent checkNetworkIntent = new Intent(Intent.ACTION_MAIN);
+                intent.setClassName("com.android.phone", "com.android.phone.NetworkSetting");
+                startActivity(checkNetworkIntent);
             }
 
         }
@@ -168,24 +168,28 @@ public class ImageInfoActivity extends AppCompatActivity
         mToolbarLayout.setTitle(mMyLandmark.getLandmarkName());
         mLocationInfo.setText(mMyLandmark.getLocation());
         displayLoading();
-        getLoaderManager().initLoader(WIKIENTRY_LOADER_ID, null, this);
+        // getLoaderManager().initLoader(WIKIENTRY_LOADER_ID, null, this);
+
+        WikiEntryAsyncTask task = new WikiEntryAsyncTask();
+        task.execute(mLandmarkName);
     }
 
-    @Override
-    public android.content.Loader<WikiEntry> onCreateLoader(int id, Bundle args) {
-        return new WikiEntryLoader(this, mLandmarkName);
-    }
-
-    @Override
-    public void onLoadFinished(android.content.Loader<WikiEntry> loader, WikiEntry data) {
-        displayContent();
-        mWikipediaContent.setText(data.getDescription());
-    }
-
-    @Override
-    public void onLoaderReset(android.content.Loader<WikiEntry> loader) {
-
-    }
+    // This is only commented out because I'll be using AsyncTask for submission.
+//    @Override
+//    public android.content.Loader<WikiEntry> onCreateLoader(int id, Bundle args) {
+//        return new WikiEntryLoader(this, mLandmarkName);
+//    }
+//
+//    @Override
+//    public void onLoadFinished(android.content.Loader<WikiEntry> loader, WikiEntry data) {
+//        displayContent();
+//        mWikipediaContent.setText(data.getDescription());
+//    }
+//
+//    @Override
+//    public void onLoaderReset(android.content.Loader<WikiEntry> loader) {
+//
+//    }
 
     private void saveInfo() {
         String landmark = mMyLandmark.getLandmarkName();
@@ -234,12 +238,12 @@ public class ImageInfoActivity extends AppCompatActivity
                     imageInfo.put(FirebaseEntry.IMAGE_URI, mFirebaseFileImagePath);
                     newEntry.updateChildren(imageInfo);
 
-                    Toast.makeText(ImageInfoActivity.this, "Message Saved Sucessfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ImageInfoActivity.this, R.string.message_save_success, Toast.LENGTH_SHORT).show();
 
                     goToMyLandmarksActivity();
                 }
                 else {
-                    Toast.makeText(ImageInfoActivity.this, "Unable to download the file", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ImageInfoActivity.this, R.string.message_save_failure, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -290,11 +294,23 @@ public class ImageInfoActivity extends AppCompatActivity
         switch(item.getItemId()) {
             case R.id.action_get_landmark:
                 Intent goToMainActivityIntent = new Intent(this, MainActivity.class);
-                startActivity(goToMainActivityIntent);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    startActivity(goToMainActivityIntent);
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                }
+                else {
+                    startActivity(goToMainActivityIntent);
+                }
                 return true;
             case R.id.action_my_landmarks:
                 Intent goToLandmarksIntent = new Intent(this, MyLandmarksActivity.class);
-                startActivity(goToLandmarksIntent);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    startActivity(goToLandmarksIntent);
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                }
+                else {
+                    startActivity(goToLandmarksIntent);
+                }
                 return true;
             case R.id.action_logout:
                 signOut();
@@ -324,8 +340,38 @@ public class ImageInfoActivity extends AppCompatActivity
 
     private void goToRegistrationActivity() {
         Intent registrationIntent = new Intent(this, EmailPasswordActivity.class);
-        startActivity(registrationIntent);
-        finish();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            Bundle bundle = ActivityOptions.makeSceneTransitionAnimation(this).toBundle();
+            startActivity(registrationIntent, bundle);
+            finish();
+        } else {
+            startActivity(registrationIntent);
+            finish();
+        }
+
+    }
+
+    private class WikiEntryAsyncTask extends AsyncTask<String, Void, WikiEntry> {
+        @Override
+        protected WikiEntry doInBackground(String... strings) {
+            if(strings[0]  == null) return null;
+            WikiEntry wikiEntry = new WikiEntry();
+
+            try {
+                wikiEntry = WikipediaAPIUtils.extractWikiEntry(strings[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return wikiEntry;
+        }
+
+        @Override
+        protected void onPostExecute(WikiEntry wikiEntry) {
+            super.onPostExecute(wikiEntry);
+            mWikipediaContent.setText(wikiEntry.getDescription());
+            displayContent();
+        }
     }
 
 }

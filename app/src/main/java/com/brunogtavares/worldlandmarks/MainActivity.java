@@ -2,6 +2,7 @@ package com.brunogtavares.worldlandmarks;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -317,8 +318,14 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(List<FirebaseVisionCloudLandmark> firebaseVisionCloudLandmarks) {
                         // Task completed successfully
                         // For now, I'm getting only one result. Later
-                        setMyLandmark(firebaseVisionCloudLandmarks.get(0));
-                        setViews(mMyLandmark);
+                        if(firebaseVisionCloudLandmarks != null && firebaseVisionCloudLandmarks.size() > 0) {
+                            setMyLandmark(firebaseVisionCloudLandmarks.get(0));
+                            setViews(mMyLandmark);
+                        }
+                        else {
+                            displayError();
+                        }
+
 
                     }
                 })
@@ -371,6 +378,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 startActivity(intent);
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             }
         });
     }
@@ -411,9 +419,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(com.brunogtavares.worldlandmarks.MainActivity.this, "Take me to image info...", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(com.brunogtavares.worldlandmarks.MainActivity.this, ImageInfoActivity.class);
                 intent.putExtra(ImageInfoActivity.LANDMARK_BUNDLE_KEY, mMyLandmark);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
 
                 if(mImageUri != null) {
                     intent.putExtra(URI_KEY, mImageUri);
@@ -501,6 +509,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayInfo() {
         mLoadingLayout.setVisibility(View.GONE);
+        mNotFoundText.setVisibility(View.GONE);
         mResultInfo.setVisibility(View.VISIBLE);
     }
 
@@ -518,14 +527,23 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch(item.getItemId()) {
+
             case R.id.action_get_landmark:
-                // Don't do anything;
+                // Do nothing
                 return true;
+
             case R.id.action_my_landmarks:
                 Intent goToLandmarksIntent = new Intent(this, MyLandmarksActivity.class);
-                startActivity(goToLandmarksIntent);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    startActivity(goToLandmarksIntent);
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);;
+                } else {
+                    startActivity(goToLandmarksIntent);
+                }
                 return true;
+
             case R.id.action_logout:
+
                 signOut();
                 return true;
 
@@ -553,8 +571,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void goToRegistrationActivity() {
         Intent registrationIntent = new Intent(this, EmailPasswordActivity.class);
-        startActivity(registrationIntent);
-        finish();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            startActivity(registrationIntent);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+            finish();
+        } else {
+            startActivity(registrationIntent);
+        }
+
     }
 
 }
